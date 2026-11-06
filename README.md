@@ -1,71 +1,37 @@
-<!-- Generated from src/docs/repository-readme.md by src/tools/refresh_latest.py. -->
+# Renatka
 
-<h1 align="center">CLIOPLAY</h1>
-<p align="center">Offline navigation and Bluetooth audio for the original Carminat TomTom screen and remote.</p>
+### An independent ClioPlay fork for Renault Carminat TomTom
 
-<p align="center"><a href="src/docs/demo/clioplay-demo.mp4"><img src="src/docs/demo/preview.gif" width="960" alt="ClioPlay: driving, map browsing, trips, Bluetooth and settings"></a></p>
-<p align="center"><a href="src/docs/demo/clioplay-demo.mp4">Watch the 6:48 demo</a> · <a href="#install">Install</a> · <a href="https://pxwel-dev.github.io/ClioPlay-Send/">Send a destination from your phone</a></p>
+Renatka is a customised fork of **ClioPlay**, originally created by **pxwel-dev**. It builds upon the original project with independent modifications focused on navigation, usability, visual presentation, and software improvements for compatible Renault Carminat TomTom systems.
+
+**Development and testing:** Built and tested on a 2010 Renault Scénic III equipped with a compatible Carminat TomTom system.
+
+## What has changed
+
+- **Custom interface improvements** — refined layouts, visual styling, and on-screen presentation.
+- **Navigation enhancements** — improvements to map rendering, route presentation, and the driving experience.
+- **Driving display refinements** — adjustments to the driving view, camera perspective, and visual clarity.
+- **Menu and interaction improvements** — updated controls, modal screens, and navigation workflows.
+- **Text and localisation support** — work on interface text, fonts, and multilingual presentation.
+- **Build and development tooling** — supporting scripts, documentation, and tools for building and testing the software.
+- **Compatibility and integration work** — continued development around the existing software and its target environment.
+
+## Credits and origins
+
+- **Project:** Renatka
+- **Upstream project:** ClioPlay
+- **Original project creator:** pxwel-dev
+- **Maintainer:** Renatka fork maintainer
+- **Test vehicle:** Renault Scénic III (2010)
+
+Renatka is an independently modified fork, not the original ClioPlay project. Credit for the original work remains with its respective author, and third-party components remain subject to their own licences.
 
 ## Compatibility
 
-This preview release of ClioPlay currently only supports vehicles that have the following: 
+Renatka was built and tested on a 2010 Renault Scénic III with a compatible Carminat TomTom system. Compatibility with other vehicles, model years, hardware revisions, and software configurations may vary.
 
-- Non-Bluetooth radio with a CD player
-- Non-live Carminat TomTom head unit
-- Bluetooth remote control used to operate the Carminat
+Always keep a backup of your original device files before installing modifications.
 
-## Features
+## Disclaimer
 
-- Offline OpenStreetMap navigation, routing and rerouting.
-- Browse the map, choose destinations, manage stops, recents and favourites.
-- Bluetooth phone audio with track information and remote playback controls.
-- Working steering wheel controls
-- Day/Night themes, automatic units and time zones, and 18 interface languages.
-- Mapped speed limits and camera alerts where the bundled country policy allows them.
-
-For new stops/destinations that aren’t already in ClioPlay’s recents/favourites list, use the separate [ClioPlay Send website](https://pxwel-dev.github.io/ClioPlay-Send/) to send the new route to ClioPlay from your phone via Bluetooth. For ease of use, add the website to your Home Screen as a web app. 
-
-## Install
-
-You need an SD card for the head unit (minimum 8GB, ensuring that it’s already formatted to FAT32) and an `.osm.pbf` map extract covering your
-journeys. Get the map extract from [Geofabrik Downloads](https://download.geofabrik.de/)
-by choosing your region and downloading its `.osm.pbf` file. Download and extract
-this repository, then follow your desktop setup:
-
-| Computer | Start here |
-| --- | --- |
-| **Windows 10/11** | Follow [Windows setup](WINDOWS.md), then double-click **Install.cmd**. Uses Ubuntu 24.04 through WSL 2. |
-| **macOS** | Install `python`, `osmium-tool`, `llvm` and `cabextract` with Homebrew, then open **Install.command**. |
-| **Linux (Ubuntu 24.04)** | Install `python3 python3-venv python3-pip build-essential osmium-tool cabextract` with `apt`, then run `python3 install.py`. |
-
-1. Choose your PBF and confirm its region.
-2. Let the installer build and check navigation data.
-3. Select the SD-card root and confirm installation.
-4. Safely eject it before use and insert into your car. 
-
-The installer downloads and checks the required official TomTom firmware.
-It does not format the card. Replaced files are backed up. Any existing ClioPlay preferences,
-pairings and saved places are preserved. No previous ClioPlay install is needed.
-Map building can take substantial time for large extracts.
-
-## Use your remote
-
-| Control | Action |
-| --- | --- |
-| **MAP** | Switch between driving and map browsing |
-| **Direction pad** | Browse the map or move through menus |
-| **Soft keys** | Zoom the map; follow the on-screen actions in menus |
-| **Centre / OK** | Select or confirm |
-| **MENU** | Open Trip, Bluetooth or Settings |
-| **BACK** | Return; toggle phone playback controls on the driving screen |
-
-See the [user guide](src/README.md) for trips, pairing and settings.
-
-Some legacy helper sources remain unavailable: see [source status](SOURCE_STATUS.md).
-Original ClioPlay contributions use the [MIT licence](LICENSE); dependencies and
-map data retain their [own licences and notices](THIRD_PARTY_NOTICES.md).
-ClioPlay is independent of Renault and TomTom.
-
-For development, see [contributing](CONTRIBUTING.md), [building](src/BUILDING.md).
-
-<sub>Release files refreshed 23 October 2026 (Europe/London).</sub>
+This project is intended for development, experimentation, and use with compatible hardware. No guarantee is made that every feature will work on every compatible device.

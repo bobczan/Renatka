@@ -1,1 +1,65 @@
 .DS_Store
+
+# Generated navigation builds, maps and downloaded inputs
+src/navigation-builder/.build/
+src/navigation-builder/.cache/
+*.osm
+*.osm.pbf
+*.pbf
+*.mbtiles
+*.cpm
+*.cpr
+*.qadj
+
+# Runtime and personal navigation data
+gpslast.dat
+recents.dat
+favourites.dat
+favorites.dat
+btkeys.dat
+vlisten.log
+bt.log
+
+# Compiled vehicle helpers and vendor firmware
+vehicledaemon
+cswd
+vstatd
+vlisten
+ttsystem
+*.cab
+
+# Local build output
+__pycache__/
+*.pyc
+
+# Personal settings and runtime data
+prefs.ini
+*.log
+gpslast.dat
+recents.dat
+favourites.dat
+favorites.dat
+btkeys.dat
+bt.log
+vlisten.log
+
+# Maps, generated navigation data and build output
+*.osm
+*.osm.pbf
+*.pbf
+*.mbtiles
+*.cpm
+*.cpr
+*.qadj
+*.sqlite
+*.db
+*.cab
+src/navigation-builder/.build/
+src/navigation-builder/.cache/
+src/navigation-builder/.venv/
+src/build/
+__pycache__/
+*.pyc
+__pycache__/
+*.pyc
+src/build/

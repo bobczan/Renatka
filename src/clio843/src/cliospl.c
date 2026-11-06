@@ -135,7 +135,7 @@ static void spl_render(int night){
  /* Centre the icon and visible title bounds as one group. Glyph top/side
   * bearings are excluded from the group's padding, so font metrics cannot
   * leave the mark floating above the screen centre. */
- const char*title="ClioPlay",*p=title;int pen=0,left=W,right=0,top=H,bottom=0;
+ const char*title="Renatka",*p=title;int pen=0,left=W,right=0,top=H,bottom=0;
  while(*p){int code=cp_code(&p);const struct CpGlyph*g=&cp_glyphs[6*98+cp_slot(code)];
   if(g->w&&g->h){if(pen+g->left<left)left=pen+g->left;if(pen+g->left+g->w>right)right=pen+g->left+g->w;if(g->top<top)top=g->top;if(g->top+g->h>bottom)bottom=g->top+g->h;}
   pen+=g->advance;
