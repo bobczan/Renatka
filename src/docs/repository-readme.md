@@ -1,5 +1,10 @@
 <!-- Generated from src/docs/repository-readme.md by src/tools/refresh_latest.py. -->
 
+> **This is the Renatka build** for a Renault Scénic III with the physical
+> armrest console. Start with [RENATKA.md](RENATKA.md); the full change history
+> and porting notes are in [CHANGELOG-RENATKA.md](CHANGELOG-RENATKA.md).
+
+
 <h1 align="center">ClioPlay</h1>
 <p align="center">Offline navigation and Bluetooth audio for the original Carminat TomTom screen.</p>
 

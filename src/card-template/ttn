@@ -1,21 +1,67 @@
 #!/bin/sh
 # ClioPlay 0.4.0-dev9.4 bootstrap
 # Persistent logs exist only when prefs.ini has debug=1.
-SD=/mnt/sdcard
-CD=/media/sdcard/clio843
+#
+# Firmware revisions mount the card at different paths, so locate it by looking
+# for our own binaries instead of assuming /mnt/sdcard. A breadcrumb is written
+# to bootdiag.txt on every boot so a failure is visible after the fact.
+breadcrumb(){
+  for _m in "$@"; do
+    if [ -d "$_m" ]; then
+      printf 'ttn start uptime=%s card=%s\n' "$(cat /proc/uptime 2>/dev/null)" "$_m" >> "$_m/bootdiag.txt" 2>/dev/null
+    fi
+  done
+}
+breadcrumb /mnt/sdcard /media/sdcard /mnt/mmc /media/mmc /mnt/sd /media/sd
+# Also cover whatever the firmware actually mounted, in case the path differs.
+while read _dev _mnt _rest; do
+  case "$_rest" in
+    vfat*|msdos*|fat*) breadcrumb "$_mnt" ;;
+  esac
+done < /proc/mounts 2>/dev/null
+find_card(){
+  for _p in /mnt/sdcard /media/sdcard /mnt/sdcard1 /mnt/mmc /media/mmc /mnt/sd /media/sd; do
+    if [ -f "$_p/clio843/clio040" ]; then echo "$_p"; return 0; fi
+  done
+  return 1
+}
+SD=$(find_card)
+if [ -z "$SD" ]; then
+  for _p in /mnt/sdcard /media/sdcard /mnt/mmc /media/mmc; do
+    [ -d "$_p" ] && printf 'ttn FAILED: no clio843 on %s\n' "$_p" >> "$_p/bootdiag.txt" 2>/dev/null
+  done
+  SD=/mnt/sdcard
+fi
+CD=$SD/clio843
 PREF=$CD/prefs.ini
 STATE=$CD/state.log
 DEBUG=0
 if [ -r "$PREF" ] && grep -q '^debug=1' "$PREF" 2>/dev/null; then DEBUG=1; fi
 mkdir -p "$CD"
+{
+  printf 'ttn card=%s debug=%s\n' "$SD" "$DEBUG"
+  echo '--- mounts ---'
+  cat /proc/mounts 2>/dev/null
+  echo "--- $SD ---"
+  ls -la "$SD" 2>/dev/null
+  echo '--- end ---'
+} >> "$CD/bootdiag.txt" 2>/dev/null
+# csw.log is the armrest capture log: keep it across boots.
+clear_logs(){
+  for _f in "$CD"/*.log "$CD"/maps/*.log; do
+    [ -f "$_f" ] || continue
+    case "$_f" in *csw.log) continue;; esac
+    rm -f "$_f" >/dev/null 2>&1
+  done
+}
 if [ "$DEBUG" = "1" ]; then
   # Fresh per-boot diagnostics; never carry stale logs forward.
-  rm -f "$CD"/*.log "$CD"/maps/*.log >/dev/null 2>&1
+  clear_logs
   : > "$STATE"
   : > "$CD/key.log"
   : > "$CD/focus.log"
 else
-  rm -f "$CD"/*.log "$CD"/maps/*.log >/dev/null 2>&1
+  clear_logs
 fi
 log(){
   if [ "$DEBUG" = "1" ]; then
