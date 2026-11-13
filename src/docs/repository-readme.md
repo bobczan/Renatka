@@ -5,7 +5,7 @@
 > and porting notes are in [CHANGELOG-RENATKA.md](CHANGELOG-RENATKA.md).
 >
 > The previous 1.x-era Renatka tree is kept, unchanged, on the
-> [`legacy-1.x`](../../tree/legacy-1.x) branch and tag. It is **not** the
+> [`legacy-1.x`](https://github.com/bobczan/Renatka/tree/legacy-1.x) branch and tag. It is **not** the
 > recommended build: no Scenic console support, no HUD rework.
 
 
