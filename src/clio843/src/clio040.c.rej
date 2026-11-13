@@ -1,0 +1,56 @@
+diff a/src/clio843/src/clio040.c b/src/clio843/src/clio040.c	(rejected hunks)
+@@ -2585,13 +2607,15 @@ static void settings_key(int code){
+ }
+ 
+ static void modal_option(int x,int y,int w,const char*s,int selected){ui_choice(x,y,w,22,selected);compact_center(x+w/2,y+3,w-16,1,s,ui_choice_text(selected));}
+-static int modal_action_count(void){if(modal==MOD_RECENT)return trip.active?3:2;if(modal==MOD_FAVE)return trip.active?4:3;if(modal==MOD_TARGET){if(modal_index>=0&&modal_index<trip.count-1)return 3;return 2;}if(modal==MOD_SOURCE_PICK)return 5;return 0;}
++static int modal_action_count(void){if(modal==MOD_ROUTE_POINT)return 3;if(modal==MOD_RECENT)return trip.active?3:2;if(modal==MOD_FAVE)return trip.active?4:3;if(modal==MOD_TARGET){if(modal_index>=0&&modal_index<trip.count-1)return 3;return 2;}if(modal==MOD_SOURCE_PICK)return 5;return 0;}
+ static void draw_modal(void){if(modal==MOD_NONE)return;if(modal==MOD_ARRIVED_STOP||modal==MOD_ARRIVED_DEST){ui_modal(74,100,332,74);compact_center(240,116,320,1,modal==MOD_ARRIVED_STOP?ui_tr("Arrived at stop"):ui_tr("Destination reached"),C_WHITE);char hint[64];copystr(hint,sizeof(hint),modal==MOD_ARRIVED_STOP?ui_tr("Continue in "):ui_tr("Finish in "));u32 now=s_now_ms(),left=arrival_modal_deadline&&time_before_u32(now,arrival_modal_deadline)?arrival_modal_deadline-now:0;append_int(hint,sizeof(hint),(int)((left+999u)/1000u));appendstr(hint,sizeof(hint),"s");compact_center(240,145,310,0,hint,C_CYAN);return;}
+-  if(modal==MOD_WAIT_PHONE){ui_modal(62,82,356,112);compact_center(240,96,320,1,phone_wait_action==DEST_PICK_CHANGE_DEST?ui_tr("Change destination"):(phone_wait_action==DEST_PICK_ADD_STOP?ui_tr("Add stop"):ui_tr("Receive destination")),C_WHITE);compact_center(240,126,320,1,ui_tr("Send a destination"),C_CYAN);compact_center(240,143,320,1,ui_tr("from ClioPlay Send"),C_CYAN);return;}
++  if(modal==MOD_WAIT_PHONE){ui_modal(62,82,356,112);compact_center(240,96,320,1,phone_wait_action==DEST_PICK_CHANGE_DEST?ui_tr("Change destination"):(phone_wait_action==DEST_PICK_ADD_STOP?ui_tr("Add stop"):ui_tr("Receive destination")),C_WHITE);compact_center(240,126,320,1,ui_tr("Send a destination"),C_CYAN);compact_center(240,143,320,1,ui_tr("from Renatka Send"),C_CYAN);return;}
+   if(modal==MOD_SOURCE_PICK){ui_modal(62,44,356,192);compact_center(240,56,320,1,dest_pick_action==DEST_PICK_CHANGE_DEST?ui_tr("Change destination"):ui_tr("Add stop"),C_WHITE);const char*options[]={ui_tr("Recents"),ui_tr("Favourites"),ui_tr("Send from phone"),ui_tr("Coordinates"),ui_tr("Cancel")};for(int i=0;i<5;i++)modal_option(100,84+i*29,280,options[i],modal_choice==i);return;}
+ 
+-  int mody=78,modh=126;if(modal==MOD_FAVE&&trip.active){mody=54;modh=174;}ui_modal(62,mody,356,modh);const char*title=modal==MOD_ROUTE_POINT?(pending_point_stop?ui_tr("Add point as stop?"):ui_tr("Route to point?")):(modal==MOD_CANCEL_ROUTE?ui_tr("Cancel current route?"):(modal==MOD_REMOVE_STOP?ui_tr("Remove stop?"):(modal==MOD_RESUME_TRIP?ui_tr("Resume saved trip?"):(modal==MOD_RECENT?ui_tr("Recent trip"):(modal==MOD_FAVE?ui_tr("Favourite"):ui_tr("Manage target"))))));compact_center(240,mody+13,320,1,title,C_WHITE);
+-  if(modal==MOD_ROUTE_POINT||modal==MOD_CANCEL_ROUTE||modal==MOD_REMOVE_STOP||modal==MOD_RESUME_TRIP){modal_option(135,130,90,ui_tr("Yes"),modal_choice==0);modal_option(255,130,90,ui_tr("No"),modal_choice==1);return;}
++  int mody=78,modh=126;if(modal==MOD_FAVE&&trip.active){mody=54;modh=174;}ui_modal(62,mody,356,modh);const char*title=modal==MOD_ROUTE_POINT?ui_tr("Map point"):(modal==MOD_CANCEL_ROUTE?ui_tr("Cancel current route?"):(modal==MOD_REMOVE_STOP?ui_tr("Remove stop?"):(modal==MOD_RESUME_TRIP?ui_tr("Resume saved trip?"):(modal==MOD_RECENT?ui_tr("Recent trip"):(modal==MOD_FAVE?ui_tr("Favourite"):ui_tr("Manage target"))))));compact_center(240,mody+13,320,1,title,C_WHITE);
++  /* RENATKA: a browsed map point offers navigate / keep as favourite / cancel. */
++  if(modal==MOD_ROUTE_POINT){modal_option(100,112,280,pending_point_stop?ui_tr("Add as stop"):ui_tr("Route to point?"),modal_choice==0);modal_option(100,139,280,ui_tr("Add to favourites"),modal_choice==1);modal_option(100,166,280,ui_tr("Cancel"),modal_choice==2);return;}
++  if(modal==MOD_CANCEL_ROUTE||modal==MOD_REMOVE_STOP||modal==MOD_RESUME_TRIP){modal_option(135,130,90,ui_tr("Yes"),modal_choice==0);modal_option(255,130,90,ui_tr("No"),modal_choice==1);return;}
+   if(modal==MOD_RECENT){int row=0;if(trip.active)modal_option(100,112+row++*27,280,ui_tr("Add as stop"),modal_choice==0);modal_option(100,112+row*27,280,ui_tr("Route as new"),modal_choice==row);row++;modal_option(100,112+row*27,280,ui_tr("Add to favourites"),modal_choice==row);}
+   else if(modal==MOD_FAVE){int row=0,y0=trip.active?84:116;if(trip.active){modal_option(100,y0+row*24,280,ui_tr("Add as stop"),modal_choice==row);row++;}modal_option(100,y0+row*24,280,ui_tr("Route as new"),modal_choice==row);row++;modal_option(100,y0+row*24,280,ui_tr("Rename favourite"),modal_choice==row);row++;modal_option(100,y0+row*24,280,ui_tr("Remove favourite"),modal_choice==row);}
+   else if(modal==MOD_TARGET&&modal_index>=0&&modal_index<trip.count){if(modal_index<trip.count-1){modal_option(100,112,280,ui_tr("Remove stop"),modal_choice==0);modal_option(100,139,280,ui_tr("Move up"),modal_choice==1);modal_option(100,166,280,ui_tr("Move down"),modal_choice==2);}else{modal_option(100,125,280,ui_tr("Change destination"),modal_choice==0);int fi=fave_contains(trip.target[modal_index].lat,trip.target[modal_index].lon);modal_option(100,154,280,fi>=0?ui_tr("Remove favourite"):ui_tr("Add to favourites"),modal_choice==1);}}
+@@ -2605,16 +2629,31 @@ struct input_event16 {s32 sec,usec;u16 type,code;s32 value;};
+ #define EAGAIN_NEG (-11)
+ static int infd[INPUT_MAX]={-1,-1,-1,-1,-1,-1,-1,-1};
+ static int input_lock=-1;
+-static int known_remote_key(int code){return code==K_ESC||code==K_BACK||code==K_SR||code==K_ENTER||code==K_UP||code==K_LEFT||code==K_RIGHT||code==K_DOWN||code==K_MAP||code==K_MENU;}
++static int known_remote_key(int code){return code==K_ESC||code==K_BACK||code==K_SR||code==K_ENTER||code==K_UP||code==K_LEFT||code==K_RIGHT||code==K_DOWN||code==K_MAP||code==K_MENU||code==K_ROTN||code==K_ROTP;}
+ static void input_log2(const char*tag,int ev,int code){if(!pref.debug)return;char b[72];b[0]=0;appendstr(b,sizeof(b),tag);appendstr(b,sizeof(b)," event");append_int(b,sizeof(b),ev);if(code>=0){appendstr(b,sizeof(b)," code=");append_int(b,sizeof(b),code);}log_append(KEY_LOG,b);}
+ static void scan_inputs(void){char p[]="/dev/input/event0";for(int i=0;i<INPUT_MAX;i++){if(infd[i]>=0)continue;p[16]=(char)('0'+i);long fd=s_open(p,O_RDONLY_|O_NONBLOCK_,0);if(fd>=0){infd[i]=(int)fd;input_log2("INPUT OPEN",i,-1);}}}
+-static void open_inputs(void){for(int i=0;i<INPUT_MAX;i++)infd[i]=-1;input_lock=-1;if(pref.debug)log_append(KEY_LOG,"--- CLIOPLAY GLOBAL 1.1.0-rc.1 COMPACT MEDIA INPUT ---");scan_inputs();}
++static void open_inputs(void){for(int i=0;i<INPUT_MAX;i++)infd[i]=-1;input_lock=-1;if(pref.debug)log_append(KEY_LOG,"--- RENATKA 2.1.1 COMPACT MEDIA INPUT ---");scan_inputs();}
+ static void keydiag(int code){if(!pref.debug)return;char b[48]="KEY code=";append_int(b,sizeof(b),code);log_append(KEY_LOG,b);}
+ static void key_handle(int code){render_background_dirty=1;keydiag(code);
++/* RENATKA: physical-console rotary knob. `cswd` forwards the Scenic/Megane
++ * armrest knob as KEY_F21/KEY_F22 (191/192). Translate one click into the
++ * directional key that the current screen already understands, so the whole
++ * UI is reachable without the Bluetooth remote. */
++if(code==K_ROTN||code==K_ROTP){
++  int fwd=code==K_ROTN;
++  if(modal!=MOD_NONE){
++    int yesno=modal==MOD_CANCEL_ROUTE||modal==MOD_REMOVE_STOP||modal==MOD_RESUME_TRIP;
++    code=yesno?(fwd?K_RIGHT:K_LEFT):(fwd?K_DOWN:K_UP);
++  }
++  else if(screen==SCR_MAP)code=fwd?K_SR:K_ESC;
++  else if(screen==SCR_KEY)code=fwd?K_RIGHT:K_LEFT;
++  else if(screen==SCR_BT&&bt_page_dialog>=0)code=fwd?K_RIGHT:K_LEFT;
++  else code=fwd?K_DOWN:K_UP;
++}
+ /* Arrival/resume prompts cannot be silently escaped with MAP/BACK. */
+ if(code==K_MAP&&screen!=SCR_MAP&&modal!=MOD_RESUME_TRIP&&modal!=MOD_ARRIVED_STOP&&modal!=MOD_ARRIVED_DEST){coordinates_active=0;modal=MOD_NONE;dest_pick_action=DEST_PICK_NONE;phone_wait_action=DEST_PICK_NONE;trip_pick_mode=DEST_PICK_NONE;screen=SCR_MAP;recenter_map();return;}
+ if(modal!=MOD_NONE){
+-  int yesno=modal==MOD_ROUTE_POINT||modal==MOD_CANCEL_ROUTE||modal==MOD_REMOVE_STOP||modal==MOD_RESUME_TRIP;
++  int yesno=modal==MOD_CANCEL_ROUTE||modal==MOD_REMOVE_STOP||modal==MOD_RESUME_TRIP;
+   if(code==K_BACK&&modal!=MOD_ARRIVED_STOP&&modal!=MOD_ARRIVED_DEST&&modal!=MOD_RESUME_TRIP){if(modal==MOD_WAIT_PHONE)phone_wait_action=DEST_PICK_NONE;if(modal==MOD_SOURCE_PICK)dest_pick_action=DEST_PICK_NONE;modal=MOD_NONE;return;}
+   if(yesno&&(code==K_LEFT||code==K_RIGHT)){modal_choice=modal_choice?0:1;return;}
+   if(!yesno&&modal!=MOD_WAIT_PHONE&&modal!=MOD_ARRIVED_STOP&&modal!=MOD_ARRIVED_DEST){int n=modal_action_count();if((code==K_UP||code==K_LEFT)&&modal_choice>0){modal_choice--;return;}if((code==K_DOWN||code==K_RIGHT)&&modal_choice+1<n){modal_choice++;return;}}

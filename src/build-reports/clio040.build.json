@@ -1,29 +1,29 @@
 {
   "machine": "ARM7TDMI / ARMv4T",
   "abi": "ELF32 EABI5 soft-float; Linux OABI syscalls",
-  "entry": "0x74a7c",
-  "bytes": 949088,
-  "sha256": "4a82e4b206079ee92f7ba788dc8cf638bcf91f38363a435d0cdf2d9eea41ff87",
+  "entry": "0x74d6c",
+  "bytes": 958600,
+  "sha256": "162f2e29489d533d442a60bf6a7c13dfaa19d11df894ad39c99a86a1d92c78ed",
   "sections": {
     ".text": {
-      "address": "0x74888",
-      "bytes": 433500
+      "address": "0x74b78",
+      "bytes": 441172
     },
     ".rodata": {
       "address": "0x10108",
-      "bytes": 345982
+      "bytes": 346734
     },
     ".data": {
-      "address": "0xee5e8",
-      "bytes": 1160
+      "address": "0xf06d0",
+      "bytes": 1192
     },
     ".bss": {
-      "address": "0xeea70",
-      "bytes": 11452768
+      "address": "0xf0b80",
+      "bytes": 11453168
     }
   },
   "source": "clio843/src/clio040.c",
-  "source_tree_sha256": "c8d6514a11c930f9bbabac4316b9bbf4b3a3a15aebc5aa8cb655996b2639ef18",
+  "source_tree_sha256": "2f20c3d2851fde7c12504371e86f40c14ec89a92da01bfc26329facb84859be6",
   "inputs": {
     "clio843/src/arm_runtime.h": "d29e9228583e93e3007b37d42554b916ebef5c9c00c91db71310cd89eaf28bb8",
     "clio843/src/atlas_catalog.h": "b0045a10c40374f77a1865d57be226f40dd313a23c5c38c68b60c3870f42a52b",
@@ -32,9 +32,10 @@
     "clio843/src/audio_playback.h": "25e0f01cd52eb89d447c5ecdf34f57bebeef36135c2912eaa3d49ec1ee7f13e1",
     "clio843/src/audio_schedule.h": "bf37e189f7a0f372567287380820a357878fc1aaf519f85309224cd0d5ae85a6",
     "clio843/src/boot_theme.h": "fa46f1bda9c0f37306c90f34d497192953aa718b30fa688291bbc7a66ddab746",
-    "clio843/src/clio040.c": "3789b0cdc7ef21d05945c5490f7688c5fcbbcd91d29dc0d1d8e947f6603aa409",
+    "clio843/src/clio040.c": "af6ced1124771d1c2e859453d9e6a24dd3a230354e494ae2643380b9f6edfd70",
+    "clio843/src/clio040.c.rej": "f8f431028e7f2498e79d7e4fd7e7caec7e22d7f5afcb99c8166b91aca1c0fe3c",
     "clio843/src/clioa2dp.c": "73bd71e6bb0f3b435c3d9d29653284549c1e71a33ddcf1e23545a68feb9076a1",
-    "clio843/src/cliospl.c": "3ed913f73a028527a29b81ab1f3e4e49f8cab7ee26e715e4ee1715378e5e86e0",
+    "clio843/src/cliospl.c": "9187d2f10bff31d59e391f3c9994df06c15bca362d14da5d5a5cc74ab56a78b5",
     "clio843/src/coordinates.h": "023eacb74d76a57445c55f35f4938bd1b47205d526a6f3788df9ca5309e01526",
     "clio843/src/font_atlas.h": "0989a1e455dd2a047dfea49d3e4d2a66a30b178960b80a2c31603ee80ffc4ffc",
     "clio843/src/frame_renderer.h": "c475fad04bf708249a08fd6411abe887c4426e916c8024a449791160c8f373aa",
@@ -44,7 +45,7 @@
     "clio843/src/global_regions.h": "0d777b61772f626eb0dd47ac0c92cb16aaf79d1b6f3f2e6463dc5806bd88eebe",
     "clio843/src/global_text.cc": "45b454fa97ec49eaaca230e4578da4361138ff2c5c410e0e552edd5629231858",
     "clio843/src/global_text.h": "49956b951783a12949ea41c4e2df829837eaa8ecfd644c68e6ca57c70a2208b6",
-    "clio843/src/hud.h": "05ede207536d9b3cb397f131de98b86d584b879c179817ce5c4e572f4f39321f",
+    "clio843/src/hud.h": "4f0165a68daba820795470ae403d48079768996b3816ff95efb4607dbdd068e9",
     "clio843/src/hud_glass.h": "89b46b14b3c70f8ecc0e71fe7798ad4867a58aab8715a6eef40f9b6d2edee946",
     "clio843/src/hud_playback.h": "a2757e57a552bf1e03a30b7b62b60bf2ade02cf62ddf565531d2eb753f86f881",
     "clio843/src/hud_status.h": "91f9d2cc57aeae72deebee57974292a8c3033631b4cd11b83d57fdececbaeaed",
@@ -58,11 +59,11 @@
     "clio843/src/map_raster.h": "0b621cc17002433bd97581df2724f5dd16d2f254437c1b238feea5e25784c401",
     "clio843/src/map_thin_coverage.h": "d4632a1dd789176be35ded06a21b84d272d69910532f31e05dc03fbfc092e5fb",
     "clio843/src/nav_roundabout.h": "470390303a8f18184a020710012ea0353d0425c26a1381bbaa4064ca2d7f39be",
-    "clio843/src/popups.h": "4ef708d38c75b1a7c7911bd1d839b8885c7bc64dd689af321d9195fde4e14565",
+    "clio843/src/popups.h": "bad047b96bfe1766fa25819e9bc7aa3ff513876399c0cb6996a55ab1ee57568d",
     "clio843/src/speed_estimates.h": "557ced1d687e781032ccc5356b6c1f360f67aa2b4084ea8f1105ef1b32abe283",
     "clio843/src/splash_icon.h": "1c0cb3bf3be97ce49cdf626bc0184b0736b49fee877a92f5bf2e5cb2d0ec17eb",
     "clio843/src/ui_raster.h": "50767eb3a56c5192daabb07944b255b34d4e77b1db48b14a30a6914871420284",
-    "clio843/src/ui_translations.h": "081ce81ae51ef700e2598476cf9dc858d45d2877ea99508925752b71ee893144",
+    "clio843/src/ui_translations.h": "53e985ed03b9a79f9b9e7c8add697ece262e0cfba0e5790c96d4ed98f0958edf",
     "clio843/src/unicode_support.c": "43a20e8dde712fbdb5e087062ad68d3ae5aec704c1ab864dec9c57a99fd54b77",
     "clio843/src/urban_speed_defaults.h": "a719a3d065f16bc39727b01d7ed73f412beeb4d8703b5bde73a8c6ff1c35ac10",
     "clio843/src/utf8.h": "e6e172fb98b7f4c9e958322d13296190fd003025562c05146bcc9a3d50af8b7c",
@@ -1034,26 +1035,26 @@
     "tools/build_thin_coverage.py": "b483abfb45f8156f6afab36f53fbe82a776d4c3267d95fc61a68a0d793f6920c",
     "navigation-builder/tools/global_speeds.py": "6b982546c655e144234d37fbc5c6da631a69be6e9041351861390636cd29bf50",
     "navigation-builder/data/speed-contexts.json": "400cbbebb7450e58602fe8be6c9ba7a04b942c5e71ef058ab0a84de5f1855f67",
-    "locales/ar.json": "6123e2a1f0a09d9cb1be505979a3f7818ad514ee0600c0072d93bbf3b9505a34",
-    "locales/de.json": "0769160c48fd1b57152cf93fa00ee30249a68654ea3f9500988ebfe6d0de3bfc",
-    "locales/el.json": "7e31eec5bd7cb07f6385877c74b1661d925c5cc26261e5a7db9be2f2904fddbf",
-    "locales/he.json": "82a0d7eb7306f87a934502626b65d78638e61a8baa2307994cb7a315c94f60d6",
-    "locales/hi.json": "0c06edc8599da8d478621fc1d7796ed9e9921b9af11f44aafee8b36a0f3299e0",
-    "locales/it.json": "a47395f5f072a1dd53de9e52c9f5e9fd87dd8387190d113784e65ac703872b5a",
-    "locales/ja.json": "f575766a4af2a320b327b456aea6c61a09a90fef3ea7873efe3d2d30dca25a00",
+    "locales/ar.json": "ed030432f234ab59b0a7acc0beb4faf526f378bb0a59e611060734de62efe7b9",
+    "locales/de.json": "1cf423dd3643ffd84be8fb181eaaa0859eeb65caa3e06a9cd9fdfc33d8612f79",
+    "locales/el.json": "753180692b183d3d1b34613e697b99747a226969104443a3e6b89626ed7bd99a",
+    "locales/he.json": "82948d22d395028b2b0faf3f0e5318bcd04560b383c2c7703385603ff355ac37",
+    "locales/hi.json": "e88ca4124ee1887f2e722de4f299a4d4ebbb99cc7b22fc1fc8db618a61352b95",
+    "locales/it.json": "e1c12643f2c57929651bc0ecdf79c3601cf78dc0080f1fd2e2063fc4e7a18da2",
+    "locales/ja.json": "95fd7407bf17cd4c0f535d94015c417995909eba2cf22f36e7bd460ae02f3558",
     "locales/keyboards.json": "3f594a4cbec10cc8906017e2e41ce7dd4545f8dd4b70b3e9dff13ea4a57a3401",
-    "locales/ko.json": "470f6257323f63cf09fa9cd84f142ec71306ec5d27c966055ab22ba932220381",
-    "locales/nl.json": "d26c80d3b0fc7194c16151ac6e87d8a43c0b4fe4fb9d46991ec7bcc119179696",
-    "locales/pl.json": "12b71fe694592864673c6a00d3bc60d76cc1730e819e209efa66115afab2097d",
-    "locales/pt.json": "26640f5ccc07306f83ef61c30f669259f93c4c1f674157acafb9aa4179b71679",
-    "locales/ru.json": "bb1c7503b9eaf21a2a3e06708bbd17ee45fa2ece72f35c170d294892bd727d13",
-    "locales/tr.json": "b09fc8ec4e7e755fa184813fadf6dd88d40f9af4c161ac50e866bcbfe5a5a31f",
-    "locales/ui.json": "03d32ffb7d25a01c632f038620220354b44313b2b09d7065058af1410797f236",
-    "locales/uk.json": "723b7f11e3950bcdecac56c9a6770ffb9c6b56e1092557ff5cf2d5f82ab891f8",
-    "locales/zh-Hans.json": "72816da3d04ba1d0ca6b23965a3ba5009f8bff659ab491cd769042eb1f6998d0"
+    "locales/ko.json": "fda190869172a5e75405e965fd8e9ec401406eea09dfd58dffaeac6811961d2e",
+    "locales/nl.json": "62d13a0a1021e34b791a7969e502b067e7622f0e6ca43c28c6188f0ed01217c5",
+    "locales/pl.json": "af88e85aeda94547fd21f06b8ba7d93881a72eabd1f59069a1182c19c2b3e139",
+    "locales/pt.json": "74a5741c31bb6b85444b374a4629cf1f76a5f36591a56d87368b9678c55bc1e2",
+    "locales/ru.json": "60a3a4d9c4ed2f161f6140cf9bce47c0d2dc7d604aab18f2df40db11a0ed94b5",
+    "locales/tr.json": "fa369a53800ce79c8888c12483e309e3df363a3ab86b2befd8632533886eef34",
+    "locales/ui.json": "b676c5c7bb023340b9b7bec88d41e6cc0668115589d401687ad0e881246a68ce",
+    "locales/uk.json": "c8139f5943677ecd6a2226bbc59c6c2178383d9582c5fa878f5c232d9b593089",
+    "locales/zh-Hans.json": "d8944e68d1d51ca3cbe1cb834efe6211b4de3ff4d3fd69d4ffa8d797b8a4a289"
   },
-  "compiler": "Apple clang version 21.0.0 (clang-2100.1.1.101)",
-  "linker": "Homebrew LLD 23.1.3 (compatible with GNU linkers)",
+  "compiler": "Ubuntu clang version 18.1.3 (1ubuntu1)",
+  "linker": "Ubuntu LLD 18.1.3 (compatible with GNU linkers)",
   "compile_flags": [
     "--target=arm-linux-gnueabi",
     "-mcpu=arm7tdmi",

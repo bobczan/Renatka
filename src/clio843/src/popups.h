@@ -55,7 +55,7 @@ static void popup_build(struct PopupView*v,int key){
   v->key+=phone_wait_action*256;v->box=hud_box(62,82,356,112);
   popup_text(v,80,96,320,1,ui_tr(phone_wait_action==DEST_PICK_CHANGE_DEST?"Change destination":phone_wait_action==DEST_PICK_ADD_STOP?"Add stop":"Receive destination"),C_WHITE,0);
   popup_text(v,80,126,320,1,ui_tr("Send a destination"),C_CYAN,0);
-  popup_text(v,80,143,320,1,ui_tr("from ClioPlay Send"),C_CYAN,0);return;
+  popup_text(v,80,143,320,1,ui_tr("from Renatka Send"),C_CYAN,0);return;
  }
  if(key==MOD_SOURCE_PICK){
   v->key+=dest_pick_action*256;v->box=hud_box(62,44,356,192);
@@ -65,11 +65,17 @@ static void popup_build(struct PopupView*v,int key){
  }
  int y=key==MOD_FAVE&&trip.active?54:78,h=key==MOD_FAVE&&trip.active?174:126;
  v->box=hud_box(62,y,356,h);
- const char*title=key==MOD_ROUTE_POINT?(pending_point_stop?"Add point as stop?":"Route to point?"):
+ const char*title=key==MOD_ROUTE_POINT?"Map point":
   key==MOD_CANCEL_ROUTE?"Cancel current route?":key==MOD_REMOVE_STOP?"Remove stop?":key==MOD_RESUME_TRIP?"Resume saved trip?":
   key==MOD_RECENT?"Recent trip":key==MOD_FAVE?"Favourite":"Manage target";
  popup_text(v,80,y+13,320,1,ui_tr(title),C_WHITE,0);
- if(key==MOD_ROUTE_POINT||key==MOD_CANCEL_ROUTE||key==MOD_REMOVE_STOP||key==MOD_RESUME_TRIP){
+ /* RENATKA: a browsed map point offers navigate / keep as favourite / cancel. */
+ if(key==MOD_ROUTE_POINT){
+  popup_option(v,100,112,280,ui_tr(pending_point_stop?"Add as stop":"Route to point?"),0);
+  popup_option(v,100,139,280,ui_tr("Add to favourites"),1);
+  popup_option(v,100,166,280,ui_tr("Cancel"),2);return;
+ }
+ if(key==MOD_CANCEL_ROUTE||key==MOD_REMOVE_STOP||key==MOD_RESUME_TRIP){
   popup_option(v,135,130,90,ui_tr("Yes"),0);popup_option(v,255,130,90,ui_tr("No"),1);return;
  }
  if(key==MOD_RECENT||key==MOD_FAVE){

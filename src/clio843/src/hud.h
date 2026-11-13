@@ -1,6 +1,7 @@
 /* HUD presentation. The route, camera and audio services own their data. */
 #define HUD_CLOCK_X 354
 enum {HUD_BOTTOM_MARGIN=8,HUD_SIDE_W=128,HUD_TURN_X=W-HUD_BOTTOM_MARGIN-HUD_SIDE_W,
+ HUD_BAR_H=49,HUD_LIMIT_R=22,HUD_LIMIT_GAP=4,
  HUD_BOTTOM_GAP=4,HUD_ROAD_PAD=12,HUD_CAMERA_PAD=10,HUD_CAMERA_ICON_W=11,HUD_CAMERA_GAP=8};
 
 #include "hud_glass.h"
@@ -301,6 +302,16 @@ static u32 hud_speed_at;
 static int hud_confirmed_limit(void){
  return roadctx.valid&&roadctx.speed>0&&!(roadctx.speed_flags&(1|4|8));
 }
+/* Renatka: return 1 only when a fixed, displayable limit is known, so an
+ * unknown limit leaves no sign and no "--" behind. */
+static int hud_sign_text(char*t,unsigned cap){
+ t[0]=0;
+ if(!roadctx.valid)return 0;
+ if(roadctx.speed_flags&(4|8))return 0;   /* INF / VAR have no fixed sign */
+ if(roadctx.speed<=0)return 0;
+ append_int(t,cap,display_limit(roadctx.speed,roadctx.speed_flags));
+ return 1;
+}
 static int hud_is_overspeed(void){
  if(!gps.fix||!hud_confirmed_limit())return 0;
  if(roadctx.speed_flags&2)return gps.mph10>roadctx.speed*10;
@@ -332,13 +343,20 @@ static void hud_driver_prepare(u32 now){
  int over=show_speed&&hud_is_overspeed();
  if(over!=hud_speed_over){hud_speed_from=hud_speed_red(now);hud_speed_over=over;hud_speed_at=now;}
  if(show_speed){
-  speed.box=hud_box(HUD_BOTTOM_MARGIN,HUD_BOTTOM_Y,HUD_SIDE_W,43);
   append_int(speed.title,sizeof(speed.title),display_speed());
   append_road_limit(speed.detail,sizeof(speed.detail),&roadctx);
   speed.flags=hud_confirmed_limit();
+  /* Renatka: speed sits in the bottom-right corner, the manoeuvre card takes
+   * the bottom-left. The pill hugs its content so there is no empty slot to
+   * the left of the digits when the limit is unknown. */
+  char lt[8];int sign=hud_sign_text(lt,sizeof(lt));
+  int sw=width(speed.title,3);
+  int w=sign?(3+2*HUD_LIMIT_R+HUD_LIMIT_GAP+sw+10):(12+sw+12);
+  if(w>HUD_SIDE_W)w=HUD_SIDE_W;
+  speed.box=hud_box(W-HUD_BOTTOM_MARGIN-w,HUD_BOTTOM_Y,w,HUD_BAR_H);
  }
  if(trip.active&&!trip.paused&&gps.fix&&!freecam&&route_status==R_READY&&nav_man_type!=MAN_NONE&&nav_man_idx>=0){
-  turn.box=hud_box(HUD_TURN_X,HUD_BOTTOM_Y,HUD_SIDE_W,43);turn.kind=nav_man_type;
+  turn.box=hud_box(HUD_BOTTOM_MARGIN,HUD_BOTTOM_Y,HUD_SIDE_W,HUD_BAR_H);turn.kind=nav_man_type;
   turn.flags=region_flags&4;turn.value=nav_man_exit;
   append_nav_distance(turn.title,sizeof(turn.title),nav_man_m);
   copystr(turn.detail,sizeof(turn.detail),nav_man_text());
@@ -355,7 +373,7 @@ static void hud_driver_prepare(u32 now){
   }
   if(w>max_w)w=max_w;
   int h=camera&&show_name?43:29;
-  road.box=hud_box((W-w)/2,HUD_BOTTOM_Y+43-h,w,h);
+  road.box=hud_box((W-w)/2,HUD_BOTTOM_Y+HUD_BAR_H-h,w,h);
  }
  hud_set_card(HC_SPEED,speed,now);hud_set_card(HC_ROAD,road,now);hud_set_card(HC_TURN,turn,now);
  hud_set_card(HC_ROAD_NAME,road_name,now);
@@ -508,22 +526,29 @@ static void hud_draw_camera(int x,int y,int w,const struct HudCard*c){
  compact_fit(title_x,y+6,title_w,0,c->title,c->ink);
  compact_fit(title_x+title_w+HUD_CAMERA_GAP,y+6,distance_w,0,c->badge,c->ink);
 }
+/* Renatka: UK-style limit sign (red ring, white face, black digits) drawn to
+ * the left of the speed; hud_sign_text() decides whether there is one. */
+static void hud_speed_sign(int cx,int cy,const char*t,int estimated){
+ hud_disc(cx,cy,HUD_LIMIT_R,C_WHITE);
+ hud_disc(cx,cy,HUD_LIMIT_R-1,estimated?rgb(150,150,150):rgb(206,32,41));
+ hud_disc(cx,cy,15,C_WHITE);
+ int face=4;
+ while(face>0&&width(t,face)>26)face--;
+ int tw=width(t,face);
+ label(cx-tw/2,cy-10,face,t,rgb(20,20,20),0);
+}
 static void hud_draw_speed(struct HudBox b,const struct HudCard*c){
- struct HudBox limit={b.x+b.w-54,b.y+5,48,33,b.a};
- int speed_x=(b.x+limit.x)/2;
- int speed_face=width(c->title,6)<=68?6:5;
- compact_center(speed_x,b.y+(speed_face==6?3:7),68,speed_face,c->title,C_WHITE);
-
- u16 tint=theme_resolved?rgb(39,52,71):rgb(223,234,246);
- u16 edge=theme_resolved?rgb(119,143,171):rgb(126,148,172);
- if(c->flags)edge=theme_resolved?rgb(225,100,110):rgb(187,48,62);
- /* Reuse the frost sampler on the glass already behind the inset. */
- hud_glass_surface(limit,tint,edge,8u,0);
-
- int text_w=limit.w-8,face=5;
- while(face>3&&width(c->detail,face)>text_w)face--;
- int text_y=face==5?2:face==4?5:7;
- compact_center(limit.x+limit.w/2,limit.y+text_y,text_w,face,c->detail,C_WHITE);
+ char lt[8];
+ int sign=hud_sign_text(lt,sizeof(lt));
+ int ty=b.y+16;   /* face 3 glyph height 11, top 3: centred in HUD_BAR_H */
+ if(sign){
+  int cx=b.x+3+HUD_LIMIT_R,cy=b.y+b.h/2;
+  hud_speed_sign(cx,cy,lt,roadctx.speed_flags&1);
+  int tx=cx+HUD_LIMIT_R+HUD_LIMIT_GAP,tw=b.x+b.w-6-tx;
+  compact_center(tx+tw/2,ty,tw,3,c->title,C_WHITE);
+ }else{
+  compact_center(b.x+b.w/2,ty,b.w-8,3,c->title,C_WHITE);
+ }
 }
 static void hud_draw_card(int id,u32 now){
  struct HudTween*t=&hud_tween[id];if(!t->seen)return;
@@ -572,9 +597,9 @@ static void hud_draw_card(int id,u32 now){
   break;
  }
  case HC_TURN:
-  hud_draw_turn(x+23,y+21,c);
-  compact_fit(x+46,y+4,w-53,1,c->title,C_WHITE);
-  compact_fit(x+46,y+23,w-53,0,c->detail,C_MUTED);break;
+  hud_draw_turn(x+23,y+24,c);
+  compact_fit(x+46,y+5,w-53,1,c->title,C_WHITE);
+  compact_fit(x+46,y+25,w-53,0,c->detail,C_MUTED);break;
  }
  hud_ink_alpha=16;clip_x=ox;clip_y=oy;clip_right=or;clip_bottom=ob;
 }
