@@ -3,6 +3,10 @@
 > **This is the Renatka build** for a Renault Scénic III with the physical
 > armrest console. Start with [RENATKA.md](RENATKA.md); the full change history
 > and porting notes are in [CHANGELOG-RENATKA.md](CHANGELOG-RENATKA.md).
+>
+> The previous 1.x-era Renatka tree is kept, unchanged, on the
+> [`legacy-1.x`](../../tree/legacy-1.x) branch and tag. It is **not** the
+> recommended build: no Scenic console support, no HUD rework.
 
 
 <h1 align="center">ClioPlay</h1>

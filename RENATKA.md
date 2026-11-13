@@ -12,6 +12,10 @@ The important consequence for anyone used to upstream: **the armrest console
 works out of the box.** No helper daemon, no `/dev/uinput`, no extra binary. The
 reader lives in `clio040` and is enabled by the empty `csw` file on the card.
 
+> **Version note.** `main` is the 2.0.0 build described here. The older 1.x
+> Renatka tree is preserved on the `legacy-1.x` branch and tag; it has no Scenic
+> console support and no HUD rework.
+
 ### Based on
 
 | | |
