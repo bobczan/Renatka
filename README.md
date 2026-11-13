@@ -1,8 +1,8 @@
 <!-- Generated from src/docs/repository-readme.md by src/tools/refresh_latest.py. -->
 
 > **This is the Renatka build** for a Renault Scénic III with the physical
-> armrest console. Start with [RENATKA.md](RENATKA.md); the full change history
-> and porting notes are in [CHANGELOG-RENATKA.md](CHANGELOG-RENATKA.md).
+> armrest console. Start with [RENATKA.md](https://github.com/bobczan/Renatka/blob/main/RENATKA.md); the full change history
+> and porting notes are in [CHANGELOG-RENATKA.md](https://github.com/bobczan/Renatka/blob/main/CHANGELOG-RENATKA.md).
 >
 > The previous 1.x-era Renatka tree is kept, unchanged, on the
 > [`legacy-1.x`](https://github.com/bobczan/Renatka/tree/legacy-1.x) branch and tag. It is **not** the
