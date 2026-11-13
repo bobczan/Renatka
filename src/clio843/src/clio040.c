@@ -1,4 +1,4 @@
-/* ClioPlay Global 1.1.0-rc.1
+/* Renatka 2.0.0 — ClioPlay Global 1.1.0-rc.1 base
  * Source-controlled framebuffer UI + offline CPM map renderer for Renault
  * Carminat TomTom (480x272 RGB565, ARMv4T Linux).
  *
@@ -33,6 +33,7 @@ static long s_write(int fd,const void*p,unsigned n){return sc3(4,fd,(long)p,(lon
 static long s_open(const char*p,int f,int m){return sc3(5,(long)p,f,m);} 
 static long s_close(int fd){return sc1(6,fd);} 
 static long s_unlink(const char*p){return sc1(10,(long)p);} 
+static long s_mknod(const char*p,int mode,int dev){return sc3(14,(long)p,mode,dev);}
 static long s_lseek(int fd,long o,int w){return sc3(19,fd,o,w);} 
 static long s_ioctl(int fd,u32 req,long arg){return sc3(54,fd,(long)req,arg);} 
 static long s_brk(long a){return sc1(45,a);} 
@@ -56,6 +57,7 @@ __attribute__((noreturn)) static void s_exit(int c){sc1(1,c);for(;;){}}
 #include <time.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+#include <sys/stat.h>
 static long s_read(int fd,void*p,unsigned n){return read(fd,p,n);} 
 static long s_write(int fd,const void*p,unsigned n){return write(fd,p,n);} 
 /* The runtime uses Linux flag values; native macOS tests need host flags. */
@@ -66,6 +68,7 @@ static long s_open(const char*p,int f,int m){
 } 
 static long s_close(int fd){return close(fd);} 
 static long s_unlink(const char*p){return unlink(p);} 
+static long s_mknod(const char*p,int mode,int dev){(void)dev;return mkfifo(p,mode&07777);}
 static long s_lseek(int fd,long o,int w){return lseek(fd,o,w);} 
 static long s_ioctl(int fd,u32 req,long arg){return ioctl(fd,(unsigned long)req,(void*)arg);} 
 static void*s_mmap2(void*addr,u32 len,int prot,int flags,int fd,u32 pgoff){if(flags&32)flags=(flags&~32)|MAP_ANON;void*p=mmap(addr,len,prot,flags,fd,(off_t)pgoff*4096);return p==MAP_FAILED?0:p;}
@@ -308,10 +311,11 @@ static int pref_keyboard_language=-1;
 static const char*bt_label(void){return pref.language==0?"Bluetooth":ui_tr("Phone connection");}
 static const char*bt_source_label(void){return "BT";}
 static const char*bt_unavailable_label(void){return pref.language==0?"Bluetooth unavailable":ui_tr("Phone connection unavailable");}
+#define DRIVE_MAX_ZOOM 10 /* RENATKA: deeper manual driving zoom (Z7..Z10 reuse Z6 tiles). */
 static int manual_zoom=5;
 static int prefs_dirty=0,prefs_delay=0;
-static void parse_pref_line(char*ln){char*eq=ln;while(*eq&&*eq!='=')eq++;if(!*eq)return;*eq++=0;if(streq(ln,"daystart")){pref.day_start=clio_theme_time(eq,CLIO_DAY_START);return;}if(streq(ln,"nightstart")){pref.night_start=clio_theme_time(eq,CLIO_NIGHT_START);return;}int v=atoi0(eq);if(streq(ln,"bright"))pref.bright=v;else if(streq(ln,"hoff"))pref.hoff=v;else if(streq(ln,"moff"))pref.moff=v;else if(streq(ln,"autozoom"))pref.autozoom=v?1:0;else if(streq(ln,"debug"))pref.debug=v?1:0;else if(streq(ln,"theme"))pref.theme=v;else if(streq(ln,"units"))pref.units=v;else if(streq(ln,"cameras"))pref.cameras=v>=0&&v<=2?v:1;else if(streq(ln,"clockauto"))pref.clock_auto=v?1:0;else if(streq(ln,"language"))pref.language=v>=0&&v<UI_LANGUAGE_COUNT?v:0;else if(streq(ln,"manualzoom"))manual_zoom=v;else if(streq(ln,"keyboardlanguage"))pref_keyboard_language=v>=0&&v<UI_LANGUAGE_COUNT?v:-1;}
-static void load_prefs(void){pref.day_start=CLIO_DAY_START;pref.night_start=CLIO_NIGHT_START;char b[512],ln[96];unsigned u=0;long fd=s_open(PREF_PATH,O_RDONLY_,0);if(fd>=0){long n=s_read((int)fd,b,sizeof(b));s_close((int)fd);if(n>0){for(long i=0;i<n;i++){char c=b[i];if(c=='\r'||c=='\n'){if(u){ln[u]=0;parse_pref_line(ln);u=0;}}else if(u+1<sizeof(ln))ln[u++]=c;}if(u){ln[u]=0;parse_pref_line(ln);}}}if(pref.bright<10)pref.bright=10;if(pref.bright>100)pref.bright=100;if(pref.theme<THEME_DAY||pref.theme>THEME_AUTO)pref.theme=THEME_AUTO;if(pref.units<0||pref.units>2)pref.units=0;if(pref.hoff*60+pref.moff< -720||pref.hoff*60+pref.moff>840)pref.hoff=pref.moff=0;if(manual_zoom<0)manual_zoom=0;if(manual_zoom>6)manual_zoom=6;if(!clio_theme_schedule_valid(pref.day_start,pref.night_start)){pref.day_start=CLIO_DAY_START;pref.night_start=CLIO_NIGHT_START;}}
+static void parse_pref_line(char*ln){char*eq=ln;while(*eq&&*eq!='=')eq++;if(!*eq)return;*eq++=0;if(streq(ln,"daystart")){pref.day_start=clio_theme_time(eq,CLIO_DAY_START);return;}if(streq(ln,"nightstart")){pref.night_start=clio_theme_time(eq,CLIO_NIGHT_START);return;}int v=atoi0(eq);if(streq(ln,"bright"))pref.bright=v;else if(streq(ln,"hoff"))pref.hoff=v;else if(streq(ln,"moff"))pref.moff=v;else if(streq(ln,"autozoom"))pref.autozoom=v?1:0;else if(streq(ln,"debug"))pref.debug=v?1:0;else if(streq(ln,"theme"))pref.theme=v;else if(streq(ln,"units"))pref.units=v;else if(streq(ln,"cameras"))pref.cameras=v>=0&&v<=2?v:1;else if(streq(ln,"clockauto"))pref.clock_auto=v?1:0;else if(streq(ln,"language"))pref.language=v>=0&&v<UI_LANGUAGE_COUNT?v:0;else if(streq(ln,"manualzoom"))manual_zoom=v<0?0:(v>DRIVE_MAX_ZOOM?DRIVE_MAX_ZOOM:v);else if(streq(ln,"keyboardlanguage"))pref_keyboard_language=v>=0&&v<UI_LANGUAGE_COUNT?v:-1;}
+static void load_prefs(void){pref.day_start=CLIO_DAY_START;pref.night_start=CLIO_NIGHT_START;char b[512],ln[96];unsigned u=0;long fd=s_open(PREF_PATH,O_RDONLY_,0);if(fd>=0){long n=s_read((int)fd,b,sizeof(b));s_close((int)fd);if(n>0){for(long i=0;i<n;i++){char c=b[i];if(c=='\r'||c=='\n'){if(u){ln[u]=0;parse_pref_line(ln);u=0;}}else if(u+1<sizeof(ln))ln[u++]=c;}if(u){ln[u]=0;parse_pref_line(ln);}}}if(pref.bright<10)pref.bright=10;if(pref.bright>100)pref.bright=100;if(pref.theme<THEME_DAY||pref.theme>THEME_AUTO)pref.theme=THEME_AUTO;if(pref.units<0||pref.units>2)pref.units=0;if(pref.hoff*60+pref.moff< -720||pref.hoff*60+pref.moff>840)pref.hoff=pref.moff=0;if(manual_zoom<0)manual_zoom=0;if(manual_zoom>DRIVE_MAX_ZOOM)manual_zoom=DRIVE_MAX_ZOOM;if(!clio_theme_schedule_valid(pref.day_start,pref.night_start)){pref.day_start=CLIO_DAY_START;pref.night_start=CLIO_NIGHT_START;}}
 /* Shared with the splash; the definition follows the wall-clock helpers. */
 static void seed_boot_theme(void);
 static void save_prefs(void){char b[384];b[0]=0;appendstr(b,sizeof(b),"version=7\nbright=");append_int(b,sizeof(b),pref.bright);appendstr(b,sizeof(b),"\nhoff=");append_int(b,sizeof(b),pref.hoff);appendstr(b,sizeof(b),"\nmoff=");append_int(b,sizeof(b),pref.moff);appendstr(b,sizeof(b),"\nautozoom=");append_int(b,sizeof(b),pref.autozoom);appendstr(b,sizeof(b),"\ndebug=");append_int(b,sizeof(b),pref.debug);appendstr(b,sizeof(b),"\ntheme=");append_int(b,sizeof(b),pref.theme);appendstr(b,sizeof(b),"\nunits=");append_int(b,sizeof(b),pref.units);appendstr(b,sizeof(b),"\ncameras=");append_int(b,sizeof(b),pref.cameras);appendstr(b,sizeof(b),"\nclockauto=");append_int(b,sizeof(b),pref.clock_auto);appendstr(b,sizeof(b),"\nlanguage=");append_int(b,sizeof(b),pref.language);appendstr(b,sizeof(b),"\ndaystart=");append_int(b,sizeof(b),pref.day_start);appendstr(b,sizeof(b),"\nnightstart=");append_int(b,sizeof(b),pref.night_start);appendstr(b,sizeof(b),"\nmanualzoom=");append_int(b,sizeof(b),manual_zoom);appendstr(b,sizeof(b),"\nkeyboardlanguage=");append_int(b,sizeof(b),pref_keyboard_language);appendstr(b,sizeof(b),"\n");long fd=s_open(PREF_TMP_PATH,O_WRONLY_|O_CREAT_|O_TRUNC_,0666);if(fd>=0){s_write((int)fd,b,slen(b));s_close((int)fd);s_sync();if(s_rename(PREF_TMP_PATH,PREF_PATH)<0){fd=s_open(PREF_PATH,O_WRONLY_|O_CREAT_|O_TRUNC_,0666);if(fd>=0){s_write((int)fd,b,slen(b));s_close((int)fd);}}s_sync();}prefs_dirty=0;prefs_delay=0;}
@@ -534,7 +538,20 @@ static void car_read_temperature(const char*b){
  value*=sign;
  if(car_temp_valid(value)){car.temp=value;car.tempok=1;}
 }
+/* RENATKA: optional external temperature feed. A plain integer in /tmp/cltemp
+ * overrides the radio telemetry file when present and plausible, so an
+ * aftermarket sensor daemon can supply cabin/outside temperature. */
+static int poll_cltemp(void){
+ char b[24];long fd=s_open("/tmp/cltemp",O_RDONLY_,0);
+ if(fd<0)return 0;
+ long n=s_read((int)fd,b,sizeof(b)-1);s_close((int)fd);
+ if(n<=0)return 0;
+ b[n]=0;int v=atoi0(b);
+ if(!car_temp_valid(v)){car.tempok=0;return 1;}
+ car.temp=v;car.tempok=1;return 1;
+}
 static void poll_car(void){
+ if(poll_cltemp())return;
  char b[256];long fd=s_open(CAR_PATH,O_RDONLY_,0);
  if(fd<0){car.tempok=0;return;}
  long n=s_read((int)fd,b,sizeof(b)-1);s_close((int)fd);
@@ -813,7 +830,7 @@ static int shown_course(void){return track_course>=0?track_course:gps.course;}
 static void update_display_course(void){if(!gps.fix)return;int c=shown_course();if(c<0||c>=360)return;if(!display_course_valid){/* A persisted heading is preferred, but on a first-ever boot this gives us a usable orientation until movement confirms it. */display_course=c;display_course_valid=1;return;}/* track_course is already smoothed; while moving, mirror it exactly so UI1 adds no extra steering lag. Below the threshold, deliberately do nothing and freeze. */if(gps.mph10>=DISPLAY_COURSE_UPDATE_MPH10)display_course=c;}
 static int map_course(void){if(display_course_valid)return display_course;return shown_course();}
 
-#define MAX_EXPLORE_ZOOM 9
+#define MAX_EXPLORE_ZOOM 10
 #define FREECAM_ORIENT_ANIM_MS 500u
 #define FC_ANIM_NONE 0
 #define FC_ANIM_TO_NORTH 1
@@ -831,7 +848,7 @@ static int map_tilt_q8=256;
 /* Driving autozoom now uses only Z6/Z5/Z4.  Hysteresis keeps the existing
  * 18/22 mph low-speed headroom and adds a 38/42 mph Z5/Z4 boundary. */
 static int speed_auto_zoom(void){int s=gps.mph10;if(auto_zoom_level<4||auto_zoom_level>6){if(s>=400)auto_zoom_level=4;else if(s>=200)auto_zoom_level=5;else auto_zoom_level=6;return auto_zoom_level;}if(auto_zoom_level==6){if(s>=220)auto_zoom_level=5;}else if(auto_zoom_level==5){if(s<=180)auto_zoom_level=6;else if(s>=420)auto_zoom_level=4;}else{if(s<=380)auto_zoom_level=5;}return auto_zoom_level;}
-static int active_zoom(void){int z;if(freecam){int lo=mapok?(int)mh.minlvl:0;z=freecam_zoom;if(z<lo)z=lo;if(z>MAX_EXPLORE_ZOOM)z=MAX_EXPLORE_ZOOM;return z;}if(pref.autozoom)z=zoom_override>=0?zoom_override:speed_auto_zoom();else z=manual_zoom;return clamp_map_zoom(z);}
+static int active_zoom(void){int z;if(freecam){int lo=mapok?(int)mh.minlvl:0;z=freecam_zoom;if(z<lo)z=lo;if(z>MAX_EXPLORE_ZOOM)z=MAX_EXPLORE_ZOOM;return z;}if(pref.autozoom)z=zoom_override>=0?zoom_override:speed_auto_zoom();else z=manual_zoom;/* RENATKA: manual driving zoom may go deeper than the Z6 tile ceiling. */if(!pref.autozoom&&z>6)return z>DRIVE_MAX_ZOOM?DRIVE_MAX_ZOOM:z;return clamp_map_zoom(z);}
 static int span_for_view_zoom(int z){if(z<=6)return span_for_level(z);if(z>MAX_EXPLORE_ZOOM)z=MAX_EXPLORE_ZOOM;return 256>>(z-6);}
 static s32 car_lat(void){return track_valid?track_lat:gps.lat;}static s32 car_lon(void){return track_valid?track_lon:gps.lon;}
 static s32 view_lat(void){return freecam?cam_lat:car_lat();}static s32 view_lon(void){return freecam?cam_lon:car_lon();}
@@ -857,7 +874,7 @@ static void view_trig(int*ss,int*c){
 }
 #define MAP_TOP 0
 #define MAP_BOTTOM H
-#define HUD_BOTTOM_Y 220
+#define HUD_BOTTOM_Y 214
 #define MAP_ANCHOR_X 240
 #define FREECAM_ANCHOR_Y 160
 #define DRIVE_ANCHOR_Y 211
@@ -2326,6 +2343,11 @@ static s32 kbd_place_lat=0,kbd_place_lon=0;static int kbd_fave_idx=-1;
 #define K_DOWN 108
 #define K_MAP 67
 #define K_MENU 68
+/* RENATKA: Carminat physical-console rotary knob. The Scenic/Megane console
+ * reports the knob as KEY_F21 (clockwise) / KEY_F22 (anticlockwise) on
+ * /dev/input/event*, which the stock remote layout never maps. */
+#define K_ROTN 191 /* knob clockwise */
+#define K_ROTP 192 /* knob anticlockwise */
 #include "keyboard.h"
 
 /* 0.5.0 navigation tree. Dashboard is replaced by Trip. The Trip page is a
@@ -2582,13 +2604,15 @@ static void settings_key(int code){
 }
 
 static void modal_option(int x,int y,int w,const char*s,int selected){ui_choice(x,y,w,22,selected);compact_center(x+w/2,y+3,w-16,1,s,ui_choice_text(selected));}
-static int modal_action_count(void){if(modal==MOD_RECENT)return trip.active?3:2;if(modal==MOD_FAVE)return trip.active?4:3;if(modal==MOD_TARGET){if(modal_index>=0&&modal_index<trip.count-1)return 3;return 2;}if(modal==MOD_SOURCE_PICK)return 5;return 0;}
+static int modal_action_count(void){if(modal==MOD_ROUTE_POINT)return 3;if(modal==MOD_RECENT)return trip.active?3:2;if(modal==MOD_FAVE)return trip.active?4:3;if(modal==MOD_TARGET){if(modal_index>=0&&modal_index<trip.count-1)return 3;return 2;}if(modal==MOD_SOURCE_PICK)return 5;return 0;}
 static void draw_modal(void){if(modal==MOD_NONE)return;if(modal==MOD_ARRIVED_STOP||modal==MOD_ARRIVED_DEST){ui_modal(74,100,332,74);compact_center(240,116,320,1,modal==MOD_ARRIVED_STOP?ui_tr("Arrived at stop"):ui_tr("Destination reached"),C_WHITE);char hint[64];copystr(hint,sizeof(hint),modal==MOD_ARRIVED_STOP?ui_tr("Continue in "):ui_tr("Finish in "));u32 now=s_now_ms(),left=arrival_modal_deadline&&time_before_u32(now,arrival_modal_deadline)?arrival_modal_deadline-now:0;append_int(hint,sizeof(hint),(int)((left+999u)/1000u));appendstr(hint,sizeof(hint),"s");compact_center(240,145,310,0,hint,C_CYAN);return;}
-  if(modal==MOD_WAIT_PHONE){ui_modal(62,82,356,112);compact_center(240,96,320,1,phone_wait_action==DEST_PICK_CHANGE_DEST?ui_tr("Change destination"):(phone_wait_action==DEST_PICK_ADD_STOP?ui_tr("Add stop"):ui_tr("Receive destination")),C_WHITE);compact_center(240,126,320,1,ui_tr("Send a destination"),C_CYAN);compact_center(240,143,320,1,ui_tr("from ClioPlay Send"),C_CYAN);return;}
+  if(modal==MOD_WAIT_PHONE){ui_modal(62,82,356,112);compact_center(240,96,320,1,phone_wait_action==DEST_PICK_CHANGE_DEST?ui_tr("Change destination"):(phone_wait_action==DEST_PICK_ADD_STOP?ui_tr("Add stop"):ui_tr("Receive destination")),C_WHITE);compact_center(240,126,320,1,ui_tr("Send a destination"),C_CYAN);compact_center(240,143,320,1,ui_tr("from Renatka Send"),C_CYAN);return;}
   if(modal==MOD_SOURCE_PICK){ui_modal(62,44,356,192);compact_center(240,56,320,1,dest_pick_action==DEST_PICK_CHANGE_DEST?ui_tr("Change destination"):ui_tr("Add stop"),C_WHITE);const char*options[]={ui_tr("Recents"),ui_tr("Favourites"),ui_tr("Send from phone"),ui_tr("Coordinates"),ui_tr("Cancel")};for(int i=0;i<5;i++)modal_option(100,84+i*29,280,options[i],modal_choice==i);return;}
 
-  int mody=78,modh=126;if(modal==MOD_FAVE&&trip.active){mody=54;modh=174;}ui_modal(62,mody,356,modh);const char*title=modal==MOD_ROUTE_POINT?(pending_point_stop?ui_tr("Add point as stop?"):ui_tr("Route to point?")):(modal==MOD_CANCEL_ROUTE?ui_tr("Cancel current route?"):(modal==MOD_REMOVE_STOP?ui_tr("Remove stop?"):(modal==MOD_RESUME_TRIP?ui_tr("Resume saved trip?"):(modal==MOD_RECENT?ui_tr("Recent trip"):(modal==MOD_FAVE?ui_tr("Favourite"):ui_tr("Manage target"))))));compact_center(240,mody+13,320,1,title,C_WHITE);
-  if(modal==MOD_ROUTE_POINT||modal==MOD_CANCEL_ROUTE||modal==MOD_REMOVE_STOP||modal==MOD_RESUME_TRIP){modal_option(135,130,90,ui_tr("Yes"),modal_choice==0);modal_option(255,130,90,ui_tr("No"),modal_choice==1);return;}
+  int mody=78,modh=126;if(modal==MOD_FAVE&&trip.active){mody=54;modh=174;}ui_modal(62,mody,356,modh);const char*title=modal==MOD_ROUTE_POINT?ui_tr("Map point"):(modal==MOD_CANCEL_ROUTE?ui_tr("Cancel current route?"):(modal==MOD_REMOVE_STOP?ui_tr("Remove stop?"):(modal==MOD_RESUME_TRIP?ui_tr("Resume saved trip?"):(modal==MOD_RECENT?ui_tr("Recent trip"):(modal==MOD_FAVE?ui_tr("Favourite"):ui_tr("Manage target"))))));compact_center(240,mody+13,320,1,title,C_WHITE);
+  /* RENATKA: a browsed map point offers navigate / keep as favourite / cancel. */
+  if(modal==MOD_ROUTE_POINT){modal_option(100,112,280,pending_point_stop?ui_tr("Add as stop"):ui_tr("Route to point?"),modal_choice==0);modal_option(100,139,280,ui_tr("Add to favourites"),modal_choice==1);modal_option(100,166,280,ui_tr("Cancel"),modal_choice==2);return;}
+  if(modal==MOD_CANCEL_ROUTE||modal==MOD_REMOVE_STOP||modal==MOD_RESUME_TRIP){modal_option(135,130,90,ui_tr("Yes"),modal_choice==0);modal_option(255,130,90,ui_tr("No"),modal_choice==1);return;}
   if(modal==MOD_RECENT){int row=0;if(trip.active)modal_option(100,112+row++*27,280,ui_tr("Add as stop"),modal_choice==0);modal_option(100,112+row*27,280,ui_tr("Route as new"),modal_choice==row);row++;modal_option(100,112+row*27,280,ui_tr("Add to favourites"),modal_choice==row);}
   else if(modal==MOD_FAVE){int row=0,y0=trip.active?84:116;if(trip.active){modal_option(100,y0+row*24,280,ui_tr("Add as stop"),modal_choice==row);row++;}modal_option(100,y0+row*24,280,ui_tr("Route as new"),modal_choice==row);row++;modal_option(100,y0+row*24,280,ui_tr("Rename favourite"),modal_choice==row);row++;modal_option(100,y0+row*24,280,ui_tr("Remove favourite"),modal_choice==row);}
   else if(modal==MOD_TARGET&&modal_index>=0&&modal_index<trip.count){if(modal_index<trip.count-1){modal_option(100,112,280,ui_tr("Remove stop"),modal_choice==0);modal_option(100,139,280,ui_tr("Move up"),modal_choice==1);modal_option(100,166,280,ui_tr("Move down"),modal_choice==2);}else{modal_option(100,125,280,ui_tr("Change destination"),modal_choice==0);int fi=fave_contains(trip.target[modal_index].lat,trip.target[modal_index].lon);modal_option(100,154,280,fi>=0?ui_tr("Remove favourite"):ui_tr("Add to favourites"),modal_choice==1);}}
@@ -2602,16 +2626,31 @@ struct input_event16 {s32 sec,usec;u16 type,code;s32 value;};
 #define EAGAIN_NEG (-11)
 static int infd[INPUT_MAX]={-1,-1,-1,-1,-1,-1,-1,-1};
 static int input_lock=-1;
-static int known_remote_key(int code){return code==K_ESC||code==K_BACK||code==K_SR||code==K_ENTER||code==K_UP||code==K_LEFT||code==K_RIGHT||code==K_DOWN||code==K_MAP||code==K_MENU;}
+static int known_remote_key(int code){return code==K_ESC||code==K_BACK||code==K_SR||code==K_ENTER||code==K_UP||code==K_LEFT||code==K_RIGHT||code==K_DOWN||code==K_MAP||code==K_MENU||code==K_ROTN||code==K_ROTP;}
 static void input_log2(const char*tag,int ev,int code){if(!pref.debug)return;char b[72];b[0]=0;appendstr(b,sizeof(b),tag);appendstr(b,sizeof(b)," event");append_int(b,sizeof(b),ev);if(code>=0){appendstr(b,sizeof(b)," code=");append_int(b,sizeof(b),code);}log_append(KEY_LOG,b);}
 static void scan_inputs(void){char p[]="/dev/input/event0";for(int i=0;i<INPUT_MAX;i++){if(infd[i]>=0)continue;p[16]=(char)('0'+i);long fd=s_open(p,O_RDONLY_|O_NONBLOCK_,0);if(fd>=0){infd[i]=(int)fd;input_log2("INPUT OPEN",i,-1);}}}
-static void open_inputs(void){for(int i=0;i<INPUT_MAX;i++)infd[i]=-1;input_lock=-1;if(pref.debug)log_append(KEY_LOG,"--- CLIOPLAY GLOBAL 1.1.0-rc.1 COMPACT MEDIA INPUT ---");scan_inputs();}
+static void open_inputs(void){for(int i=0;i<INPUT_MAX;i++)infd[i]=-1;input_lock=-1;if(pref.debug)log_append(KEY_LOG,"--- RENATKA 2.0.0 COMPACT MEDIA INPUT ---");scan_inputs();}
 static void keydiag(int code){if(!pref.debug)return;char b[48]="KEY code=";append_int(b,sizeof(b),code);log_append(KEY_LOG,b);}
 static void key_handle(int code){render_background_dirty=1;keydiag(code);
+/* RENATKA: physical-console rotary knob. `cswd` forwards the Scenic/Megane
+ * armrest knob as KEY_F21/KEY_F22 (191/192). Translate one click into the
+ * directional key that the current screen already understands, so the whole
+ * UI is reachable without the Bluetooth remote. */
+if(code==K_ROTN||code==K_ROTP){
+  int fwd=code==K_ROTN;
+  if(modal!=MOD_NONE){
+    int yesno=modal==MOD_CANCEL_ROUTE||modal==MOD_REMOVE_STOP||modal==MOD_RESUME_TRIP;
+    code=yesno?(fwd?K_RIGHT:K_LEFT):(fwd?K_DOWN:K_UP);
+  }
+  else if(screen==SCR_MAP)code=fwd?K_SR:K_ESC;
+  else if(screen==SCR_KEY)code=fwd?K_RIGHT:K_LEFT;
+  else if(screen==SCR_BT&&bt_page_dialog>=0)code=fwd?K_RIGHT:K_LEFT;
+  else code=fwd?K_DOWN:K_UP;
+}
 /* Arrival/resume prompts cannot be silently escaped with MAP/BACK. */
 if(code==K_MAP&&screen!=SCR_MAP&&modal!=MOD_RESUME_TRIP&&modal!=MOD_ARRIVED_STOP&&modal!=MOD_ARRIVED_DEST){coordinates_active=0;modal=MOD_NONE;dest_pick_action=DEST_PICK_NONE;phone_wait_action=DEST_PICK_NONE;trip_pick_mode=DEST_PICK_NONE;screen=SCR_MAP;recenter_map();return;}
 if(modal!=MOD_NONE){
-  int yesno=modal==MOD_ROUTE_POINT||modal==MOD_CANCEL_ROUTE||modal==MOD_REMOVE_STOP||modal==MOD_RESUME_TRIP;
+  int yesno=modal==MOD_CANCEL_ROUTE||modal==MOD_REMOVE_STOP||modal==MOD_RESUME_TRIP;
   if(code==K_BACK&&modal!=MOD_ARRIVED_STOP&&modal!=MOD_ARRIVED_DEST&&modal!=MOD_RESUME_TRIP){if(modal==MOD_WAIT_PHONE)phone_wait_action=DEST_PICK_NONE;if(modal==MOD_SOURCE_PICK)dest_pick_action=DEST_PICK_NONE;modal=MOD_NONE;return;}
   if(yesno&&(code==K_LEFT||code==K_RIGHT)){modal_choice=modal_choice?0:1;return;}
   if(!yesno&&modal!=MOD_WAIT_PHONE&&modal!=MOD_ARRIVED_STOP&&modal!=MOD_ARRIVED_DEST){int n=modal_action_count();if((code==K_UP||code==K_LEFT)&&modal_choice>0){modal_choice--;return;}if((code==K_DOWN||code==K_RIGHT)&&modal_choice+1<n){modal_choice++;return;}}
@@ -2628,6 +2667,7 @@ if(modal!=MOD_NONE){
           if(hud_navigation.kind==HUD_EXPLORE)hud_navigation.kind=HUD_NONE;
         }
       }
+      else if(modal_choice==1){modal=MOD_NONE;add_fave_or_name("MAP POINT",pending_lat,pending_lon);return;}
       modal=MOD_NONE;return;
     }
     if(modal==MOD_CANCEL_ROUTE){if(modal_choice==0&&trip.active){clear_trip();notice_success(ui_tr("Route cancelled"));}modal=MOD_NONE;return;}
@@ -2674,7 +2714,8 @@ if(screen==SCR_MAP){
   if(code==K_UP||code==K_DOWN||code==K_LEFT||code==K_RIGHT){int was=freecam;pan_freecam(code);if(!was&&freecam)hud_pulse(&hud_navigation,HUD_EXPLORE,1800);return;}
   if(code==K_ESC||code==K_SR){
     int z=active_zoom(),up=code==K_SR,lo=mapok?(int)mh.minlvl:0;
-    int hi=freecam?MAX_EXPLORE_ZOOM:(mapok?(int)mh.maxlvl:6);if(!freecam&&hi>6)hi=6;
+    /* RENATKA: manual driving zoom may use Z7/Z8; autozoom stays at the Z6 tile ceiling. */
+    int hi=freecam?MAX_EXPLORE_ZOOM:(pref.autozoom?(mapok?(int)mh.maxlvl:6):DRIVE_MAX_ZOOM);if(!freecam&&hi>6&&pref.autozoom)hi=6;
     int next=z+(up?1:-1);
     if(next>=lo&&next<=hi){
       if(freecam)freecam_zoom=next;
@@ -2698,6 +2739,328 @@ if(screen==SCR_SET)settings_key(code);}
 
 static void poll_keys(void){for(int i=0;i<INPUT_MAX;i++){if(infd[i]<0)continue;for(;;){struct input_event16 e;long n=s_read(infd[i],&e,sizeof(e));if(n==(long)sizeof(e)){if(e.type==EV_KEY&&e.value==1&&known_remote_key(e.code)){if(input_lock<0){input_lock=i;input_log2("INPUT LOCK",i,e.code);}if(input_lock==i)key_handle(e.code);}continue;}if(n==0||(n<0&&n!=EAGAIN_NEG)){s_close(infd[i]);infd[i]=-1;if(input_lock==i){input_log2("INPUT LOST",i,-1);input_lock=-1;}}break;}}}
 
+/* ===================================================================
+ * RENATKA: Renault Scenic III / Megane armrest console.
+ *
+ * The armrest controls on these cars are not Linux input devices. They are
+ * published by `vehicledaemon` through the UiInput::RCswPipe FIFO at
+ * /dev/input/CswEvent0 as fixed 28-byte records. Injecting events back into
+ * /dev/input/eventN is not possible -- evdev has no write path and this 2.6.13
+ * kernel ships no uinput -- so clio040 reads the FIFO itself and calls
+ * key_handle() directly. That removes the daemon, the startup ordering and the
+ * event-injection problem in one step.
+ *
+ * The FIFO is opened O_NONBLOCK so boot never waits for vehicledaemon, and it
+ * is deliberately never closed: dropping the read end delivers SIGPIPE to the
+ * writer and can take vehicledaemon down with it.
+ *
+ * The record layout is not published, so the default is the documented field
+ * order widened to 32 bits:
+ *   [0] source  [1] direction  [2] rotation  [3] pressed
+ *   [4] duration [5] steps     [6] (unnamed)
+ * Set `layout=16` in cswmap.ini for the packed 16/32-bit alternative.
+ *
+ * Everything is opt-in: an empty file `csw` in the SD-card root enables the
+ * reader. Delete it and reboot and the car is back to stock behaviour.
+ * =================================================================== */
+#define CSW_PATH "/dev/input/CswEvent0"
+#define CSW_ENABLE_PATH "/media/sdcard/csw"
+#define CSW_ENABLE_TMP "/tmp/csw"
+#define CSW_MAP_PATH "/media/sdcard/cswmap.ini"
+#define CSW_LOG_PATH "/media/sdcard/clio843/csw.log"
+#define CSW_REC 28
+#define CSW_MAP_MAX 48
+#define CSW_DEBOUNCE_MS 250
+#define CSW_ROT_MS 60
+#define CSW_PUSH_MS 1200
+#define CSW_FIFO_MODE 0010666
+#define CSW_LOG_MAX 98304
+#define CSW_SEEN_MAX 24
+
+static int cswfd=-1,csw_enabled=0,csw_verbose=1,csw_knob=-1;
+static u8 cswbuf[CSW_REC];
+static int cswfill=0,csw_layout=0;
+static u16 csw_map_key[CSW_MAP_MAX];
+static s16 csw_map_src[CSW_MAP_MAX],csw_map_dir[CSW_MAP_MAX];
+static int csw_nmap=0,csw_map_size=-1;
+static u32 csw_reload_ms=0,csw_try_ms=0,csw_last_ms=0,csw_push_ms=0;
+static int csw_last_src=-1,csw_last_dir=-1;
+static u16 csw_rot_key[2]={K_ROTP,K_ROTN};
+static u16 csw_push_key=K_ENTER;
+static u16 csw_seen_key[CSW_SEEN_MAX];
+static int csw_nseen=0;
+
+static int path_exists(const char*p){long fd=s_open(p,O_RDONLY_|O_NONBLOCK_,0);if(fd<0)return 0;s_close((int)fd);return 1;}
+
+static void csw_log(const char*s){
+ /* Renatka: diagnostics are Debug-only so normal driving never writes to the
+  * SD card. The FIFO itself is still created and read with Debug off. */
+ if(!pref.debug)return;
+ long fd=s_open(CSW_LOG_PATH,O_WRONLY_|O_CREAT_|O_APPEND_,0666);
+ if(fd<0)return;
+ s_write((int)fd,s,(unsigned)slen(s));
+ s_write((int)fd,"\n",1);
+ s_close((int)fd);
+}
+static void csw_log2(const char*tag,int a){
+ char b[96];b[0]=0;appendstr(b,sizeof(b),tag);append_int(b,sizeof(b),a);csw_log(b);
+}
+
+static u32 csw_u32(const u8*b,int o){return (u32)b[o]|((u32)b[o+1]<<8)|((u32)b[o+2]<<16)|((u32)b[o+3]<<24);}
+static int csw_field(const u8*b,int i){
+ if(csw_layout==1){
+  switch(i){
+   case 0:return (int)((u32)b[0]|((u32)b[1]<<8));
+   case 1:return (int)((u32)b[2]|((u32)b[3]<<8));
+   case 2:return (int)(s16)((u32)b[4]|((u32)b[5]<<8));
+   case 3:return (int)((u32)b[6]|((u32)b[7]<<8));
+   case 4:return (int)csw_u32(b,8);
+   case 5:return (int)csw_u32(b,12);
+   default:return (int)csw_u32(b,16);
+  }
+ }
+ return (int)csw_u32(b,i*4);
+}
+static void csw_hex(char*out,unsigned cap,const u8*b){
+ static const char*hx="0123456789abcdef";unsigned n=0;
+ for(int i=0;i<CSW_REC&&n+3<cap;i++){out[n++]=hx[b[i]>>4];out[n++]=hx[b[i]&15];out[n++]=' ';}
+ out[n]=0;
+}
+static int csw_action_key(const char*a){
+ if(streq(a,"up"))return K_UP;
+ if(streq(a,"down"))return K_DOWN;
+ if(streq(a,"left"))return K_LEFT;
+ if(streq(a,"right"))return K_RIGHT;
+ if(streq(a,"enter")||streq(a,"ok"))return K_ENTER;
+ if(streq(a,"back"))return K_BACK;
+ if(streq(a,"esc"))return K_ESC;
+ if(streq(a,"map"))return K_MAP;
+ if(streq(a,"menu"))return K_MENU;
+ if(streq(a,"zoomin")||streq(a,"sr"))return K_SR;
+ if(streq(a,"knob+"))return K_ROTN;
+ if(streq(a,"knob-"))return K_ROTP;
+ return 0;
+}
+/* -1 = not mapped, 0 = explicitly ignored, >0 = key code. */
+static int csw_lookup(int src,int dir){
+ for(int i=0;i<csw_nmap;i++){
+  if(csw_map_src[i]!=src)continue;
+  if(csw_map_dir[i]>=0&&csw_map_dir[i]!=dir)continue;
+  return (int)csw_map_key[i];
+ }
+ return -1;
+}
+static int csw_has(int src,int dir){
+ for(int i=0;i<csw_nmap;i++){
+  if(csw_map_src[i]!=src)continue;
+  if(csw_map_dir[i]>=0&&csw_map_dir[i]!=dir)continue;
+  return 1;
+ }
+ return 0;
+}
+static void csw_add_map(int src,int dir,const char*a){
+ int k=csw_action_key(a);
+ int none=k?0:(streq(a,"none")||streq(a,"ignore"));
+ if((k||none)&&csw_nmap<CSW_MAP_MAX){
+  csw_map_src[csw_nmap]=(s16)src;csw_map_dir[csw_nmap]=(s16)dir;
+  csw_map_key[csw_nmap]=(u16)k;csw_nmap++;
+ }
+}
+static void csw_note_unmapped(int src,int dir){
+ u16 k=(u16)(((unsigned)src&0xffu)<<8|((unsigned)dir&0xffu));
+ for(int i=0;i<csw_nseen;i++)if(csw_seen_key[i]==k)return;
+ if(csw_nseen<CSW_SEEN_MAX)csw_seen_key[csw_nseen++]=k;
+ char b[128];b[0]=0;
+ appendstr(b,sizeof(b),"UNMAPPED src=");append_int(b,sizeof(b),src);
+ appendstr(b,sizeof(b)," dir=");append_int(b,sizeof(b),dir);
+ csw_log(b);
+}
+static void csw_map_line(char*ln){
+ char*p=ln;
+ while(*p==' '||*p=='\t')p++;
+ if(!*p||*p=='#'||*p==';')return;
+ {char*cm=p;while(*cm&&*cm!='#')cm++;*cm=0;}
+ int src=-1,dir=-1;char act[16];act[0]=0;
+ while(*p){
+  char nb[16],vb[24];
+  while(*p==' '||*p=='\t')p++;
+  if(!*p)break;
+  char*name=p;
+  while(*p&&*p!='='&&*p!=' '&&*p!='\t')p++;
+  int nl=(int)(p-name);
+  while(*p==' '||*p=='\t')p++;
+  char*val=p;
+  if(*p=='='){p++;while(*p==' '||*p=='\t')p++;val=p;}
+  while(*p&&*p!=' '&&*p!='\t')p++;
+  int vl=(int)(p-val);
+  if(nl>15)nl=15;if(vl>23)vl=23;
+  for(int i=0;i<nl;i++)nb[i]=name[i];nb[nl]=0;
+  for(int i=0;i<vl;i++)vb[i]=val[i];vb[vl]=0;
+  if(!vl)continue;
+  /* Scenic/Megane console keys: btnN=ACTION, dirN=ACTION, push/longpush.
+   * `dirN` must not swallow the numeric `dir=` field above. */
+  if(nb[0]=='b'&&nb[1]=='t'&&nb[2]=='n'&&nb[3]>='0'&&nb[3]<='9')csw_add_map(atoi0(nb+3),-1,vb);
+  else if(nb[0]=='d'&&nb[1]=='i'&&nb[2]=='r'&&nb[3]>='0'&&nb[3]<='9')csw_add_map(0,atoi0(nb+3),vb);
+  else if(streq(nb,"rot1")){
+   int k=csw_action_key(vb);csw_rot_key[0]=k>0?(u16)k:0;
+  }
+  else if(streq(nb,"rot2")){
+   int k=csw_action_key(vb);csw_rot_key[1]=k>0?(u16)k:0;
+  }
+  else if(streq(nb,"push")){
+   int k=csw_action_key(vb);csw_push_key=k>0?(u16)k:0;
+  }
+  else if(streq(nb,"longpush")||streq(nb,"knob"))continue;
+  else if(streq(nb,"src"))src=atoi0(vb);
+  else if(streq(nb,"dir"))dir=atoi0(vb);
+  else if(streq(nb,"act")||streq(nb,"key")){int i=0;while(i<15&&vb[i]){act[i]=vb[i];i++;}act[i]=0;}
+  else if(streq(nb,"layout"))csw_layout=(streq(vb,"16")||streq(vb,"mixed"))?1:0;
+  else if(streq(nb,"verbose"))csw_verbose=atoi0(vb);
+ }
+ if(src>=0&&act[0])csw_add_map(src,dir,act);
+}
+/* Defaults recovered from the working Scenic III capture: button records carry
+ * only a usable `src`; the joystick, knob rotation and knob press all share
+ * src 0 and are told apart by `dir` and `rot`. */
+static void csw_defaults(void){
+ static const struct{u8 src;u16 key;}btn[]={
+  {1,K_ESC},{2,K_BACK},{3,K_SR},{4,K_ENTER},{5,K_MENU},{8,K_MENU},{9,K_MAP}};
+ static const u16 dir[4]={K_UP,K_DOWN,K_RIGHT,K_LEFT};
+ for(unsigned i=0;i<sizeof(btn)/sizeof(btn[0]);i++)
+  if(!csw_has(btn[i].src,-1)){csw_map_src[csw_nmap]=(s16)btn[i].src;csw_map_dir[csw_nmap]=-1;csw_map_key[csw_nmap]=btn[i].key;csw_nmap++;}
+ for(int d=1;d<=4;d++)
+  if(!csw_has(0,d)){csw_map_src[csw_nmap]=0;csw_map_dir[csw_nmap]=(s16)d;csw_map_key[csw_nmap]=dir[d-1];csw_nmap++;}
+}
+static void csw_map_load(void){
+ csw_nmap=0;csw_knob=-1;csw_layout=0;csw_verbose=1;csw_map_size=0;
+ csw_rot_key[0]=K_ROTP;csw_rot_key[1]=K_ROTN;csw_push_key=K_ENTER;
+ char b[2048];long fd=s_open(CSW_MAP_PATH,O_RDONLY_,0);
+ if(fd<0){csw_defaults();csw_log("cswmap.ini absent: built-in Scenic mapping");return;}
+ long n=s_read((int)fd,b,sizeof(b)-1);s_close((int)fd);
+ if(n<=0){csw_defaults();csw_log("cswmap.ini empty: built-in Scenic mapping");return;}
+ b[n]=0;csw_map_size=(int)n;csw_verbose=0;
+ char*ln=b;
+ while(*ln){
+  char*e=ln;while(*e&&*e!='\n'&&*e!='\r')e++;
+  char save=*e;*e=0;
+  csw_map_line(ln);
+  if(!save)break;
+  ln=e+1;
+ }
+ csw_defaults();
+ csw_log2("cswmap.ini loaded entries=",csw_nmap);
+}
+static void csw_map_watch(void){
+ u32 now=s_now_ms();
+ if(now-csw_reload_ms<5000)return;
+ csw_reload_ms=now;
+ long fd=s_open(CSW_MAP_PATH,O_RDONLY_,0);
+ if(fd<0)return;
+ long sz=s_lseek((int)fd,0,SEEK_END_);s_close((int)fd);
+ if(sz<0||(int)sz==csw_map_size)return;
+ csw_map_load();
+ csw_log("cswmap.ini changed: reloaded");
+}
+static void csw_record(const u8*b){
+ int src=csw_field(b,0),dir=csw_field(b,1),rot=csw_field(b,2),pr=csw_field(b,3);
+ if(csw_verbose){
+  char line[224],hex[100];
+  csw_hex(hex,sizeof(hex),b);
+  line[0]=0;
+  appendstr(line,sizeof(line),"rec src=");append_int(line,sizeof(line),src);
+  appendstr(line,sizeof(line)," dir=");append_int(line,sizeof(line),dir);
+  appendstr(line,sizeof(line)," rot=");append_int(line,sizeof(line),rot);
+  appendstr(line,sizeof(line)," pr=");append_int(line,sizeof(line),pr);
+  appendstr(line,sizeof(line)," ");appendstr(line,sizeof(line),hex);
+  csw_log(line);
+ }
+ u32 now=s_now_ms();
+ int key=-1;
+ if(src>0){
+  /* Console buttons: `dir`, `rot` and `pr` contain uninitialised bytes, so
+   * only `src` is meaningful. One key per record, with a repeat guard. */
+  if(src==csw_last_src&&now-csw_last_ms<CSW_DEBOUNCE_MS)return;
+  csw_last_src=src;csw_last_ms=now;
+  key=csw_lookup(src,-1);
+  if(key<0)key=csw_lookup(src,dir);
+ }else if(dir>=1&&dir<=4){
+  /* Joystick: src 0, dir 1..4 (1 up, 2 down, 3 right, 4 left). */
+  if(dir==csw_last_dir&&now-csw_last_ms<CSW_ROT_MS)return;
+  csw_last_dir=dir;csw_last_ms=now;
+  key=csw_lookup(0,dir);
+ }else if(dir==5&&(rot==1||rot==2)){
+  /* Rotary knob: src 0, dir 5, rot 1 anticlockwise / 2 clockwise. */
+  if(now-csw_last_ms<CSW_ROT_MS)return;
+  csw_last_ms=now;
+  key=(int)csw_rot_key[rot-1];
+ }else if(dir==5&&rot==3){
+  /* Knob press: the daemon repeats the same record while the knob is held, so
+   * one key per burst rather than one per record. */
+  if(now-csw_push_ms<CSW_PUSH_MS)return;
+  csw_push_ms=now;
+  key=(int)csw_push_key;
+ }else{
+  key=csw_lookup(src,dir);
+ }
+ if(key>0){key_handle((u16)key);return;}
+ if(key<0)csw_note_unmapped(src,dir);
+}
+static void csw_probe(void){
+ static const char*paths[]={
+  "/tmp/cltemp","/tmp/cfstate","/tmp/cfbus","/tmp/cftemp",
+  "/dev/input/CswEvent0","/dev/uinput","/dev/input/event0","/dev/input/event7",
+  "/proc/barcelona","/proc/barcelona/onoff","/media/sdcard/cswmap.ini"
+ };
+ char b[128];
+ for(unsigned i=0;i<sizeof(paths)/sizeof(paths[0]);i++){
+  b[0]=0;appendstr(b,sizeof(b),path_exists(paths[i])?"present ":"absent  ");
+  appendstr(b,sizeof(b),paths[i]);csw_log(b);
+ }
+}
+static void csw_init(void){
+ csw_enabled=path_exists(CSW_ENABLE_PATH)||path_exists(CSW_ENABLE_TMP);
+ if(!csw_enabled){
+  if(pref.debug){csw_log("--- RENATKA CSW probe (reader disabled: no `csw` file) ---");csw_probe();}
+  return;
+ }
+ /* The Scenic/Megane console FIFO is published by vehicledaemon, but nothing
+  * creates the node unless the stock navigator does. Do it here, before
+  * vehicledaemon restarts, using the same node cswd used: S_IFIFO|0666.
+  * mknod wins only when the node is absent; EEXIST (-17) means keep it. */
+ {long r=s_mknod(CSW_PATH,CSW_FIFO_MODE,0);
+  if(r==0)csw_log("CswEvent0 created");
+  else if(r!=-17)csw_log2("mknod CswEvent0 failed errno=",(int)(-r));
+ }
+ {long fd=s_open(CSW_LOG_PATH,O_RDWR_,0);
+  if(fd>=0){
+   long sz=s_lseek((int)fd,0,SEEK_END_);
+   s_close((int)fd);
+   if(sz>CSW_LOG_MAX){fd=s_open(CSW_LOG_PATH,O_WRONLY_|O_CREAT_|O_TRUNC_,0666);if(fd>=0)s_close((int)fd);}
+  }
+ }
+ csw_log("--- RENATKA CSW reader start ---");
+ csw_probe();
+ csw_map_load();
+}
+static void poll_csw(void){
+ if(!csw_enabled)return;
+ csw_map_watch();
+ if(cswfd<0){
+  u32 now=s_now_ms();
+  if(now-csw_try_ms<1000)return;
+  csw_try_ms=now;
+  long fd=s_open(CSW_PATH,O_RDONLY_|O_NONBLOCK_,0);
+  if(fd<0)return;
+  cswfd=(int)fd;cswfill=0;
+  csw_log("CswEvent0 opened");
+ }
+ for(;;){
+  long n=s_read(cswfd,cswbuf+cswfill,(unsigned)(CSW_REC-cswfill));
+  if(n>0){cswfill+=(int)n;if(cswfill<CSW_REC)continue;csw_record(cswbuf);cswfill=0;continue;}
+  break;
+ }
+}
+
 #include "frame_renderer.h"
 
 static int power_requested(void){char b[24];long fd=s_open(POWER_PATH,O_RDWR_,0);if(fd<0)return 0;long n=s_read((int)fd,b,sizeof(b)-1);if(n<=0){s_close((int)fd);return 0;}b[n]=0;int v=atoi0(b),r=0;if(v&1){s_lseek((int)fd,0,SEEK_SET_);s_write((int)fd,"0",1);r=1;}s_close((int)fd);return r;}
@@ -2713,11 +3076,11 @@ static void run(void){
  cliou_load("/mnt/sdcard/clio843/maps/fonts.cpf");
 #endif
 #endif
- load_prefs();debug_state_write();load_last_fix();seed_boot_theme();if(!pref.debug)remove_stale_logs();load_last_audio();nrecents=read_places(RECENT_PATH,recents,RECENT_MAX);nfaves=read_places(FAVES_PATH,faves,FAVE_MAX);load_trip();apply_brightness();load_map();load_timezones();load_regions();load_cameras();seed_boot_map_view();load_route_data();s_unlink(BT_CMD_PATH);bt_write_small(BT_ACTIVE_PATH,"0\n");bt_active_written=0;bt_name_cache_load();bt_poll_status();if(trip.active){modal=MOD_RESUME_TRIP;modal_choice=0;}open_inputs();
-  int wdfd=(int)s_open(WD_PATH,O_WRONLY_,0);debug_log(STATE_LOG,"CLIOPLAY GLOBAL 1.1.0-rc.1 COMPACT REV16 LOWCAM224 ROADTRACE1 BTNAMECACHE1 LOWCAM224 AUTOZOOM654 PERF8 NAV QAD7+UI6+MEDIA3+FREECAM-BIDIR-ANIM+PACKETS+MMAP+STALL+REPAIRSAFE TRIPFLOW GPSRESUME BTMEDIA CPR2-v5 ATLAS1 CLOCK1 CAMERA2 ROUTE RUNTIME");debug_log(STATE_LOG,qadjmode==7?(qadj_map_ok?"QAD7 PACKET+MMAP QUERY ENABLED":"QAD7 PAGED QUERY ENABLED"):(qadjmode==6?(qadj_map_ok?"QAD6 GEOMMETA+MMAP QUERY ENABLED":"QAD6 PAGED QUERY ENABLED"):(qadjmode==5?(qadj_map_ok?"QAD5 MMAP+STALL QUERY ENABLED":"QAD5 PAGED+STALL QUERY ENABLED"):(qadjmode==4?"QAD4 LOCAL-RECON QUERY ENABLED":(qadjmode==3?"QAD3 GROUP QUERY+RECON ENABLED":(qadjmode==2?"QAD2 NODE-BLOCK QUERY ENABLED (PAGED INDEX)":(qadjmode==1?"QAD1 FAST QUERY ENABLED":"QADJ FAST QUERY FALLBACK CPR2")))))));if(qadjmode==6&&qadj6_legacy_header)debug_log(STATE_LOG,"QAD6 DEV5.31 HEADER COMPAT ENABLED");{char mb[96];mb[0]=0;appendstr(mb,sizeof(mb),"MMAP QAD=");append_int(mb,sizeof(mb),qadj_map_ok);appendstr(mb,sizeof(mb)," GEOM=");append_int(mb,sizeof(mb),route_geom_map_ok);debug_log(STATE_LOG,mb);}u32 tick=0,next_model=s_now_ms(),next_input=next_model;render_runtime_reset(next_model);
+ load_prefs();debug_state_write();load_last_fix();seed_boot_theme();if(!pref.debug)remove_stale_logs();load_last_audio();nrecents=read_places(RECENT_PATH,recents,RECENT_MAX);nfaves=read_places(FAVES_PATH,faves,FAVE_MAX);load_trip();apply_brightness();load_map();load_timezones();load_regions();load_cameras();seed_boot_map_view();load_route_data();s_unlink(BT_CMD_PATH);bt_write_small(BT_ACTIVE_PATH,"0\n");bt_active_written=0;bt_name_cache_load();bt_poll_status();if(trip.active){modal=MOD_RESUME_TRIP;modal_choice=0;}open_inputs();csw_init();
+  int wdfd=(int)s_open(WD_PATH,O_WRONLY_,0);debug_log(STATE_LOG,"RENATKA 2.0.0 COMPACT REV16 LOWCAM224 ROADTRACE1 BTNAMECACHE1 LOWCAM224 AUTOZOOM654 PERF8 NAV QAD7+UI6+MEDIA3+FREECAM-BIDIR-ANIM+PACKETS+MMAP+STALL+REPAIRSAFE TRIPFLOW GPSRESUME BTMEDIA CPR2-v5 ATLAS1 CLOCK1 CAMERA2 ROUTE RUNTIME");debug_log(STATE_LOG,qadjmode==7?(qadj_map_ok?"QAD7 PACKET+MMAP QUERY ENABLED":"QAD7 PAGED QUERY ENABLED"):(qadjmode==6?(qadj_map_ok?"QAD6 GEOMMETA+MMAP QUERY ENABLED":"QAD6 PAGED QUERY ENABLED"):(qadjmode==5?(qadj_map_ok?"QAD5 MMAP+STALL QUERY ENABLED":"QAD5 PAGED+STALL QUERY ENABLED"):(qadjmode==4?"QAD4 LOCAL-RECON QUERY ENABLED":(qadjmode==3?"QAD3 GROUP QUERY+RECON ENABLED":(qadjmode==2?"QAD2 NODE-BLOCK QUERY ENABLED (PAGED INDEX)":(qadjmode==1?"QAD1 FAST QUERY ENABLED":"QADJ FAST QUERY FALLBACK CPR2")))))));if(qadjmode==6&&qadj6_legacy_header)debug_log(STATE_LOG,"QAD6 DEV5.31 HEADER COMPAT ENABLED");{char mb[96];mb[0]=0;appendstr(mb,sizeof(mb),"MMAP QAD=");append_int(mb,sizeof(mb),qadj_map_ok);appendstr(mb,sizeof(mb)," GEOM=");append_int(mb,sizeof(mb),route_geom_map_ok);debug_log(STATE_LOG,mb);}u32 tick=0,next_model=s_now_ms(),next_input=next_model;render_runtime_reset(next_model);
   for(;;){
     u32 now=s_now_ms();int model_due=frame_due(now,next_model);
-    if(frame_due(now,next_input)){poll_keys();next_input=frame_after(next_input,now,33u);}
+    if(frame_due(now,next_input)){poll_keys();poll_csw();next_input=frame_after(next_input,now,33u);}
     if(model_due){
       next_model=frame_after(next_model,now,FRAME_MODEL_MS);
       if((tick%5)==0)scan_inputs();int had_fix=gps.fix;poll_gps();if(gps.fix){if(!had_fix){track_valid=0;track_course=-1;}remember_live_fix();}
