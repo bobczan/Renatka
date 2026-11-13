@@ -1,4 +1,4 @@
-# Renatka 2.0.0
+# Renatka 2.1.0
 
 **Renatka** is a ClioPlay build for the Renault Carminat TomTom, made for one
 particular car: a 2010 Renault Scénic III whose head unit is driven from the
@@ -12,7 +12,7 @@ The important consequence for anyone used to upstream: **the armrest console
 works out of the box.** No helper daemon, no `/dev/uinput`, no extra binary. The
 reader lives in `clio040` and is enabled by the empty `csw` file on the card.
 
-> **Version note.** `main` is the 2.0.0 build described here. The older 1.x
+> **Version note.** `main` is the 2.1.0 build described here. The older 1.x
 > Renatka tree is preserved on the `legacy-1.x` branch and tag; it has no Scenic
 > console support and no HUD rework.
 
@@ -20,7 +20,7 @@ reader lives in `clio040` and is enabled by the empty `csw` file on the card.
 
 | | |
 | --- | --- |
-| Upstream | [`pxwel-dev/ClioPlay`](https://github.com/pxwel-dev/ClioPlay), commit `baf04be`, `src/VERSION` = `2.0.0` |
+| Upstream | [`pxwel-dev/ClioPlay`](https://github.com/pxwel-dev/ClioPlay), commit `2c946d8` (2.0.0 plus the rendering-performance work) |
 | Vehicle | Renault Scénic III (2010), Carminat TomTom non-LIVE, `hw_remote=0`, `hw_handsfree=0`, `hw_bluetooth=1`, Linux 2.6.13 / S3C2443 |
 | Firmware | 8.842 on the unit; the installer supplies 8.843 `ttsystem` + `vehicledaemon` from TomTom's own CAB |
 
@@ -61,7 +61,7 @@ reader lives in `clio040` and is enabled by the empty `csw` file on the card.
 Everything in ClioPlay 2.0 is included: the frosted-glass HUD pills, shared
 status notifications, Bluetooth CTRL with playback progress, coordinate
 destination entry, 18 UI languages, the 19-country camera policy and the
-adaptive 20/10/5 FPS HUD refresh.
+adaptive 15/10/5 FPS HUD refresh.
 
 ---
 
@@ -72,7 +72,7 @@ adaptive 20/10/5 FPS HUD refresh.
 | Boot splash mark | **Unchanged** — the original ClioPlay play-triangle is kept |
 | Boot splash title | `ClioPlay` → **`Renatka`** (`src/clio843/src/cliospl.c`) |
 | Phone-send wording | `from ClioPlay Send` → **`from Renatka Send`** in all 18 languages (edited in `src/locales/*.json`; `src/clio843/src/ui_translations.h` is generated from them) |
-| Debug banners | `CLIOPLAY GLOBAL 1.1.0-rc.1 …` → `RENATKA 2.0.0 …` |
+| Debug banners | `CLIOPLAY GLOBAL 1.1.0-rc.1 …` → `RENATKA 2.1.0 …` |
 
 The splash is still drawn once, from precomputed 8×8 coverage masks, so the
 branding costs nothing at boot. The mark generator is unchanged from upstream;
