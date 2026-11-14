@@ -3,6 +3,10 @@
 #ifndef HOST_TEST
 #define REGIONS_PATH "/mnt/sdcard/clio843/maps/regions.cpg"
 #define CAMERAS_PATH "/mnt/sdcard/clio843/maps/cameras.cpc"
+/* The unit mounts the card at one of two roots depending on firmware; read
+ * both so a card-only install cannot silently lose the camera data. */
+#define REGIONS_FALLBACK "/media/sdcard/clio843/maps/regions.cpg"
+#define CAMERAS_FALLBACK "/media/sdcard/clio843/maps/cameras.cpc"
 #else
 #define REGIONS_PATH CLIO_HOST_ROOT "clio843/maps/regions.cpg"
 #define CAMERAS_PATH CLIO_HOST_ROOT "clio843/maps/cameras.cpc"
@@ -11,7 +15,12 @@ static int regionfd=-1,region_flags=0;
 static char region_iso[3]={0,0,0};
 static u32 region_count=0,region_data=0,region_next_ms=0;
 static s32 region_last_lat=0x7fffffff,region_last_lon=0x7fffffff;
-static int load_regions(void){u8 h[16];regionfd=(int)s_open(REGIONS_PATH,O_RDONLY_,0);if(regionfd<0)return 0;if(s_read(regionfd,h,16)!=16||h[0]!='C'||h[1]!='P'||h[2]!='G'||h[3]!='1'||rd16(h+4)!=1||rd16(h+6)!=32)goto bad;region_count=rd32u(h+8);region_data=rd32u(h+12);if(region_count>200000||region_data!=16+region_count*32)goto bad;return 1;bad:s_close(regionfd);regionfd=-1;return 0;}
+static int load_regions_path(const char*path){u8 h[16];regionfd=(int)s_open(path,O_RDONLY_,0);if(regionfd<0)return 0;if(s_read(regionfd,h,16)!=16||h[0]!='C'||h[1]!='P'||h[2]!='G'||h[3]!='1'||rd16(h+4)!=1||rd16(h+6)!=32)goto bad;region_count=rd32u(h+8);region_data=rd32u(h+12);if(region_count>200000||region_data!=16+region_count*32)goto bad;return 1;bad:s_close(regionfd);regionfd=-1;return 0;}
+static int load_regions(void){if(load_regions_path(REGIONS_PATH))return 1;
+#ifdef REGIONS_FALLBACK
+ if(load_regions_path(REGIONS_FALLBACK))return 1;
+#endif
+ return 0;}
 static int region_polygon(u32 off,u32 nr,s32 lat,s32 lon){
  if(nr>10000)return 0;int inside=0;s_lseek(regionfd,(long)(region_data+off),SEEK_SET_);
  for(u32 r=0;r<nr;r++){u8 b[8];if(s_read(regionfd,b,4)!=4)return 0;u32 n=rd32u(b);if(n<4||n>2000000)return 0;s32 la0=0,lo0=0;int ring=0;

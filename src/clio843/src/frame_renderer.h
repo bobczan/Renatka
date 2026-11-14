@@ -76,6 +76,9 @@ static void render_present(void){
  /* Read the presentation clock after restoring the backdrop. */
  u32 now=hud_now_ms();render_prepare(now);renderer.present_at=now;
  hud_glass_frame_begin();hud_draw_all(now,screen==SCR_MAP);
+ /* Camera markers ride in the cached map layer; the approach popup is HUD state
+  * and must be composited on every presentation pass. */
+ if(screen==SCR_MAP)draw_camera_popup();
  if(screen!=SCR_MAP)hud_draw_page_title();
  draw_modal();hud_glass_frame_end();fb_flush();
  clip_x=ox;clip_y=oy;clip_right=orr;clip_bottom=ob;hud_ink_alpha=oa;

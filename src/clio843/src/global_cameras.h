@@ -8,10 +8,15 @@ static int camera_average_speed=0,camera_candidate_valid=0,camera_prev_valid=0;
 static s32 camera_prev_lat=0,camera_prev_lon=0;
 static struct Camera camera_current,camera_candidate;
 static u32 camera_candidate_distance=0;
-static int load_cameras(void){u8 b[16];camerafd=(int)s_open(CAMERAS_PATH,O_RDONLY_,0);if(camerafd<0)return 0;if(s_read(camerafd,b,16)!=16||b[0]!='C'||b[1]!='P'||b[2]!='C'||b[3]!='1'||!((rd16(b+4)==1&&rd16(b+6)==32)||(rd16(b+4)==2&&rd16(b+6)==40))||rd32u(b+12)!=16)goto bad;camera_recsize=rd16(b+6);camera_count=rd32u(b+8);if(camera_count>1000000)goto bad;long size=s_lseek(camerafd,0,2);if(size<0||(u32)size!=16+camera_count*camera_recsize)goto bad;return 1;bad:s_close(camerafd);camerafd=-1;return 0;}
+static int load_cameras_path(const char*path){u8 b[16];camerafd=(int)s_open(path,O_RDONLY_,0);if(camerafd<0)return 0;if(s_read(camerafd,b,16)!=16||b[0]!='C'||b[1]!='P'||b[2]!='C'||b[3]!='1'||!((rd16(b+4)==1&&rd16(b+6)==32)||(rd16(b+4)==2&&rd16(b+6)==40))||rd32u(b+12)!=16)goto bad;camera_recsize=rd16(b+6);camera_count=rd32u(b+8);if(camera_count>1000000)goto bad;long size=s_lseek(camerafd,0,2);if(size<0||(u32)size!=16+camera_count*camera_recsize)goto bad;return 1;bad:s_close(camerafd);camerafd=-1;camera_count=0;return 0;}
+static int load_cameras(void){if(load_cameras_path(CAMERAS_PATH))return 1;
+#ifdef CAMERAS_FALLBACK
+ if(load_cameras_path(CAMERAS_FALLBACK))return 1;
+#endif
+ return 0;}
 static int camera_read(u32 i,struct Camera*c){if(i>=camera_count)return 0;u8 b[40];s_lseek(camerafd,(long)(16+i*camera_recsize),SEEK_SET_);if(s_read(camerafd,b,camera_recsize)!=(long)camera_recsize)return 0;c->lat=(s32)rd32u(b);c->lon=(s32)rd32u(b+4);c->endlat=(s32)rd32u(b+8);c->endlon=(s32)rd32u(b+12);c->id=rd32u(b+16);c->heading=rd16(b+20);c->speed=rd16(b+22);c->flags=b[24];c->kind=b[25];c->iso[0]=(char)b[26];c->iso[1]=(char)b[27];c->waylo=camera_recsize==40?rd32u(b+32):0;c->wayhi=camera_recsize==40?rd32u(b+36):0;return c->kind>=1&&c->kind<=3&&c->speed<=255&&(c->heading<360||c->heading==65535)&&!(c->flags&~15);}
 static u32 camera_lower(s32 lat){u32 lo=0,hi=camera_count;while(lo<hi){u32 m=lo+(hi-lo)/2;struct Camera c;if(!camera_read(m,&c))return camera_count;if(c.lat<lat)lo=m+1;else hi=m;}return lo;}
-static int camera_heading_ok(const struct Camera*c){if(c->heading==65535)return 1;int d=shown_course()-(int)c->heading;if(d< -180)d+=360;if(d>180)d-=360;return d>=-45&&d<=45;}
+static int camera_heading_ok(const struct Camera*c){if(pref.camdir)return 1;if(c->heading==65535)return 1;int d=shown_course()-(int)c->heading;if(d< -180)d+=360;if(d>180)d-=360;return d>=-45&&d<=45;}
 static int camera_ahead(const struct Camera*c,u32*distance){
  if(!camera_heading_ok(c))return 0;
  if(route_status==R_READY&&route_n-route_head>1){u32 along=0,best=626,bm=0;int cq=coslat_q15(gps.lat);
@@ -34,7 +39,7 @@ static void camera_clear(void){camera_visible=camera_average=camera_candidate_va
 static u32 camera_alert_ids[16],camera_alert_times[16],camera_alert_slot=0;
 static void camera_sound_request(u32 id,u32 kind){u32 packet[4]={0x4c414c43u,id,s_now_ms()+1500u,kind};long f=s_open(CAMERA_ALERT_TMP,O_WRONLY_|O_CREAT_|O_TRUNC_,0666);if(f>=0){long n=s_write((int)f,packet,sizeof(packet));s_close((int)f);if(n==(long)sizeof(packet))s_rename(CAMERA_ALERT_TMP,CAMERA_ALERT_PATH);}}
 static void camera_sound_service(u32 now){
- if(pref.cameras!=2||!bt_source_selected()||!camera_visible||camera_average||camera_distance>600||camera_distance<20)return;
+ if(pref.cameras!=2||!bt_source_selected()||!camera_visible||camera_average||camera_distance>400||camera_distance<20)return;
  for(int i=0;i<16;i++)if(camera_alert_ids[i]==camera_current.id&&now-camera_alert_times[i]<300000u)return;
  u32 slot=camera_alert_slot++&15;camera_alert_ids[slot]=camera_current.id;camera_alert_times[slot]=now;camera_sound_request(camera_current.id,1);
 }

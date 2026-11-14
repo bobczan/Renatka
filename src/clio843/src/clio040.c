@@ -16,7 +16,7 @@
  */
 
 /* Renatka release identifier, shown at the bottom of Settings. */
-#define RENATKA_VERSION "2.2.5"
+#define RENATKA_VERSION "2.4.0"
 
 typedef unsigned char u8;
 typedef unsigned short u16;
@@ -306,7 +306,7 @@ static void text_center_fit(int cx,int y,int maxw,const char*s,u16 c){
 static int fb_flush(void){long fd=s_open(FB_PATH,O_WRONLY_|O_CREAT_,0666);if(fd<0)return 0;s_lseek((int)fd,0,SEEK_SET_);long n=s_write((int)fd,fb,sizeof(fb));s_close((int)fd);return n==(long)sizeof(fb);}
 
 enum { THEME_DAY=0, THEME_NIGHT=1, THEME_AUTO=2 };
-struct Prefs {int bright,hoff,moff,autozoom,debug,theme,units,cameras,clock_auto,language,day_start,night_start;};
+struct Prefs {int bright,hoff,moff,autozoom,debug,theme,units,cameras,clock_auto,language,day_start,night_start,camdir;};
 static struct Prefs pref={50,0,0,1,0,THEME_AUTO,0,1,1,0,CLIO_DAY_START,CLIO_NIGHT_START};
 static int pref_keyboard_language=-1;
 #include "ui_translations.h"
@@ -318,11 +318,11 @@ static const char*bt_unavailable_label(void){return pref.language==0?"Bluetooth 
 #define DRIVE_MAX_ZOOM 10 /* RENATKA: deeper manual driving zoom (Z7..Z10 reuse Z6 tiles). */
 static int manual_zoom=5;
 static int prefs_dirty=0,prefs_delay=0;
-static void parse_pref_line(char*ln){char*eq=ln;while(*eq&&*eq!='=')eq++;if(!*eq)return;*eq++=0;if(streq(ln,"daystart")){pref.day_start=clio_theme_time(eq,CLIO_DAY_START);return;}if(streq(ln,"nightstart")){pref.night_start=clio_theme_time(eq,CLIO_NIGHT_START);return;}int v=atoi0(eq);if(streq(ln,"bright"))pref.bright=v;else if(streq(ln,"hoff"))pref.hoff=v;else if(streq(ln,"moff"))pref.moff=v;else if(streq(ln,"autozoom"))pref.autozoom=v?1:0;else if(streq(ln,"debug"))pref.debug=v?1:0;else if(streq(ln,"theme"))pref.theme=v;else if(streq(ln,"units"))pref.units=v;else if(streq(ln,"cameras"))pref.cameras=v>=0&&v<=2?v:1;else if(streq(ln,"clockauto"))pref.clock_auto=v?1:0;else if(streq(ln,"language"))pref.language=v>=0&&v<UI_LANGUAGE_COUNT?v:0;else if(streq(ln,"manualzoom"))manual_zoom=v<0?0:(v>DRIVE_MAX_ZOOM?DRIVE_MAX_ZOOM:v);else if(streq(ln,"keyboardlanguage"))pref_keyboard_language=v>=0&&v<UI_LANGUAGE_COUNT?v:-1;}
+static void parse_pref_line(char*ln){char*eq=ln;while(*eq&&*eq!='=')eq++;if(!*eq)return;*eq++=0;if(streq(ln,"daystart")){pref.day_start=clio_theme_time(eq,CLIO_DAY_START);return;}if(streq(ln,"nightstart")){pref.night_start=clio_theme_time(eq,CLIO_NIGHT_START);return;}int v=atoi0(eq);if(streq(ln,"bright"))pref.bright=v;else if(streq(ln,"hoff"))pref.hoff=v;else if(streq(ln,"moff"))pref.moff=v;else if(streq(ln,"autozoom"))pref.autozoom=v?1:0;else if(streq(ln,"debug"))pref.debug=v?1:0;else if(streq(ln,"theme"))pref.theme=v;else if(streq(ln,"units"))pref.units=v;else if(streq(ln,"cameras"))pref.cameras=v>=0&&v<=2?v:1;else if(streq(ln,"camdir"))pref.camdir=v?1:0;else if(streq(ln,"clockauto"))pref.clock_auto=v?1:0;else if(streq(ln,"language"))pref.language=v>=0&&v<UI_LANGUAGE_COUNT?v:0;else if(streq(ln,"manualzoom"))manual_zoom=v<0?0:(v>DRIVE_MAX_ZOOM?DRIVE_MAX_ZOOM:v);else if(streq(ln,"keyboardlanguage"))pref_keyboard_language=v>=0&&v<UI_LANGUAGE_COUNT?v:-1;}
 static void load_prefs(void){pref.day_start=CLIO_DAY_START;pref.night_start=CLIO_NIGHT_START;char b[512],ln[96];unsigned u=0;long fd=s_open(PREF_PATH,O_RDONLY_,0);if(fd>=0){long n=s_read((int)fd,b,sizeof(b));s_close((int)fd);if(n>0){for(long i=0;i<n;i++){char c=b[i];if(c=='\r'||c=='\n'){if(u){ln[u]=0;parse_pref_line(ln);u=0;}}else if(u+1<sizeof(ln))ln[u++]=c;}if(u){ln[u]=0;parse_pref_line(ln);}}}if(pref.bright<10)pref.bright=10;if(pref.bright>100)pref.bright=100;if(pref.theme<THEME_DAY||pref.theme>THEME_AUTO)pref.theme=THEME_AUTO;if(pref.units<0||pref.units>2)pref.units=0;if(pref.hoff*60+pref.moff< -720||pref.hoff*60+pref.moff>840)pref.hoff=pref.moff=0;if(manual_zoom<0)manual_zoom=0;if(manual_zoom>DRIVE_MAX_ZOOM)manual_zoom=DRIVE_MAX_ZOOM;if(!clio_theme_schedule_valid(pref.day_start,pref.night_start)){pref.day_start=CLIO_DAY_START;pref.night_start=CLIO_NIGHT_START;}}
 /* Shared with the splash; the definition follows the wall-clock helpers. */
 static void seed_boot_theme(void);
-static void save_prefs(void){char b[384];b[0]=0;appendstr(b,sizeof(b),"version=7\nbright=");append_int(b,sizeof(b),pref.bright);appendstr(b,sizeof(b),"\nhoff=");append_int(b,sizeof(b),pref.hoff);appendstr(b,sizeof(b),"\nmoff=");append_int(b,sizeof(b),pref.moff);appendstr(b,sizeof(b),"\nautozoom=");append_int(b,sizeof(b),pref.autozoom);appendstr(b,sizeof(b),"\ndebug=");append_int(b,sizeof(b),pref.debug);appendstr(b,sizeof(b),"\ntheme=");append_int(b,sizeof(b),pref.theme);appendstr(b,sizeof(b),"\nunits=");append_int(b,sizeof(b),pref.units);appendstr(b,sizeof(b),"\ncameras=");append_int(b,sizeof(b),pref.cameras);appendstr(b,sizeof(b),"\nclockauto=");append_int(b,sizeof(b),pref.clock_auto);appendstr(b,sizeof(b),"\nlanguage=");append_int(b,sizeof(b),pref.language);appendstr(b,sizeof(b),"\ndaystart=");append_int(b,sizeof(b),pref.day_start);appendstr(b,sizeof(b),"\nnightstart=");append_int(b,sizeof(b),pref.night_start);appendstr(b,sizeof(b),"\nmanualzoom=");append_int(b,sizeof(b),manual_zoom);appendstr(b,sizeof(b),"\nkeyboardlanguage=");append_int(b,sizeof(b),pref_keyboard_language);appendstr(b,sizeof(b),"\n");long fd=s_open(PREF_TMP_PATH,O_WRONLY_|O_CREAT_|O_TRUNC_,0666);if(fd>=0){s_write((int)fd,b,slen(b));s_close((int)fd);s_sync();if(s_rename(PREF_TMP_PATH,PREF_PATH)<0){fd=s_open(PREF_PATH,O_WRONLY_|O_CREAT_|O_TRUNC_,0666);if(fd>=0){s_write((int)fd,b,slen(b));s_close((int)fd);}}s_sync();}prefs_dirty=0;prefs_delay=0;}
+static void save_prefs(void){char b[384];b[0]=0;appendstr(b,sizeof(b),"version=7\nbright=");append_int(b,sizeof(b),pref.bright);appendstr(b,sizeof(b),"\nhoff=");append_int(b,sizeof(b),pref.hoff);appendstr(b,sizeof(b),"\nmoff=");append_int(b,sizeof(b),pref.moff);appendstr(b,sizeof(b),"\nautozoom=");append_int(b,sizeof(b),pref.autozoom);appendstr(b,sizeof(b),"\ndebug=");append_int(b,sizeof(b),pref.debug);appendstr(b,sizeof(b),"\ntheme=");append_int(b,sizeof(b),pref.theme);appendstr(b,sizeof(b),"\nunits=");append_int(b,sizeof(b),pref.units);appendstr(b,sizeof(b),"\ncameras=");append_int(b,sizeof(b),pref.cameras);appendstr(b,sizeof(b),"\ncamdir=");append_int(b,sizeof(b),pref.camdir);appendstr(b,sizeof(b),"\nclockauto=");append_int(b,sizeof(b),pref.clock_auto);appendstr(b,sizeof(b),"\nlanguage=");append_int(b,sizeof(b),pref.language);appendstr(b,sizeof(b),"\ndaystart=");append_int(b,sizeof(b),pref.day_start);appendstr(b,sizeof(b),"\nnightstart=");append_int(b,sizeof(b),pref.night_start);appendstr(b,sizeof(b),"\nmanualzoom=");append_int(b,sizeof(b),manual_zoom);appendstr(b,sizeof(b),"\nkeyboardlanguage=");append_int(b,sizeof(b),pref_keyboard_language);appendstr(b,sizeof(b),"\n");long fd=s_open(PREF_TMP_PATH,O_WRONLY_|O_CREAT_|O_TRUNC_,0666);if(fd>=0){s_write((int)fd,b,slen(b));s_close((int)fd);s_sync();if(s_rename(PREF_TMP_PATH,PREF_PATH)<0){fd=s_open(PREF_PATH,O_WRONLY_|O_CREAT_|O_TRUNC_,0666);if(fd>=0){s_write((int)fd,b,slen(b));s_close((int)fd);}}s_sync();}prefs_dirty=0;prefs_delay=0;}
 static void prefs_mark_dirty(void){prefs_dirty=1;prefs_delay=10;}
 static void prefs_service(void){if(!prefs_dirty)return;if(prefs_delay>0){prefs_delay--;return;}save_prefs();}
 
@@ -810,6 +810,9 @@ static struct Tile* get_tile_page(u8 l,s32 x,s32 y,u8 page){
 }
 static struct Tile* get_tile(u8 l,s32 x,s32 y){return get_tile_page(l,x,y,0);}
 static int span_for_level(int z){if(z>=8&&z<=11)z-=8;static const int sp[7]={16384,8192,4096,2048,1024,512,256};if(z<0)z=0;if(z>6)z=6;return sp[z];}
+/* Explore keeps a usable floor: below Z2 the pack has almost no detail and a
+ * single frame covers the whole county, which stalls the renderer on this unit. */
+static int explore_min_zoom(void){int lo=mapok?(int)mh.minlvl:0;return lo<2?2:lo;}
 static int clamp_map_zoom(int z){int lo=mapok?(int)mh.minlvl:0,hi=mapok?(int)mh.maxlvl:6;if(lo<0)lo=0;if(hi>6)hi=6;if(z<lo)z=lo;if(z>hi)z=hi;return z;}
 static int tile_div(int a,int z){int sh=14-z;if(a>=0)return a>>sh;return -(((-a)+(1<<sh)-1)>>sh);}
 static int coslat_q15(s32 lat){static s32 previous;static int cached,valid;if(valid&&lat==previous)return cached;previous=lat;valid=1;int d=lat<0?-lat:lat;d/=100;if(d>=90000){cached=0;return 0;}static const u16 c[91]={32767,32762,32747,32722,32687,32642,32587,32523,32448,32364,32269,32165,32051,31927,31794,31650,31498,31335,31163,30982,30791,30591,30381,30162,29934,29697,29451,29196,28932,28659,28377,28087,27788,27481,27165,26841,26509,26169,25821,25465,25101,24730,24351,23964,23571,23170,22762,22347,21925,21497,21062,20621,20173,19720,19260,18794,18323,17846,17364,16876,16384,15886,15383,14876,14364,13848,13328,12803,12275,11743,11207,10668,10126,9580,9032,8481,7927,7371,6813,6252,5690,5126,4560,3993,3425,2856,2286,1715,1144,572,0};int i=d/1000,f=d%1000;cached=c[i]+((int)c[i+1]-c[i])*f/1000;return cached;}
@@ -854,7 +857,7 @@ static int map_tilt_q8=256;
 /* Driving autozoom now uses only Z6/Z5/Z4.  Hysteresis keeps the existing
  * 18/22 mph low-speed headroom and adds a 38/42 mph Z5/Z4 boundary. */
 static int speed_auto_zoom(void){int s=gps.mph10;if(auto_zoom_level<4||auto_zoom_level>6){if(s>=400)auto_zoom_level=4;else if(s>=200)auto_zoom_level=5;else auto_zoom_level=6;return auto_zoom_level;}if(auto_zoom_level==6){if(s>=220)auto_zoom_level=5;}else if(auto_zoom_level==5){if(s<=180)auto_zoom_level=6;else if(s>=420)auto_zoom_level=4;}else{if(s<=380)auto_zoom_level=5;}return auto_zoom_level;}
-static int active_zoom(void){int z;if(freecam){int lo=mapok?(int)mh.minlvl:0;z=freecam_zoom;if(z<lo)z=lo;if(z>MAX_EXPLORE_ZOOM)z=MAX_EXPLORE_ZOOM;return z;}if(pref.autozoom)z=zoom_override>=0?zoom_override:speed_auto_zoom();else z=manual_zoom;/* RENATKA: manual driving zoom may go deeper than the Z6 tile ceiling. */if(!pref.autozoom&&z>6)return z>DRIVE_MAX_ZOOM?DRIVE_MAX_ZOOM:z;return clamp_map_zoom(z);}
+static int active_zoom(void){int z;if(freecam){int lo=explore_min_zoom();z=freecam_zoom;if(z<lo)z=lo;if(z>MAX_EXPLORE_ZOOM)z=MAX_EXPLORE_ZOOM;return z;}if(pref.autozoom)z=zoom_override>=0?zoom_override:speed_auto_zoom();else z=manual_zoom;/* RENATKA: manual driving zoom may go deeper than the Z6 tile ceiling. */if(!pref.autozoom&&z>6)return z>DRIVE_MAX_ZOOM?DRIVE_MAX_ZOOM:z;return clamp_map_zoom(z);}
 static int span_for_view_zoom(int z){if(z<=6)return span_for_level(z);if(z>MAX_EXPLORE_ZOOM)z=MAX_EXPLORE_ZOOM;return 256>>(z-6);}
 static s32 car_lat(void){return track_valid?track_lat:gps.lat;}static s32 car_lon(void){return track_valid?track_lon:gps.lon;}
 static s32 view_lat(void){return freecam?cam_lat:car_lat();}static s32 view_lon(void){return freecam?cam_lon:car_lon();}
@@ -2391,23 +2394,28 @@ static char notice_text[40]; /* Latest action, also used by native checks. */
 
 #include "hud.h"
 
+static void draw_camera_markers(int z);
 static void draw_map_background(void){
  int z=active_zoom();perspective_scale_update();
  if(!freecam)drive_label_prepare(z);
  draw_map_geometry(z);draw_route_overlay(z);if(!freecam)drive_label_render();
+ draw_camera_markers(z);
  draw_car_marker(z);draw_explore_crosshair();
 }
 /* RENATKA proposal: every camera in view gets the UK sign, route or not. */
 static void draw_camera_markers(int z){
  if(!pref.cameras)return;
  if(!gps.fix&&!freecam)return;
+ /* Regional overview: cameras would merge into clutter, so keep it clean. */
+ if(z<2)return;
+ int size=z<4?16:20;
 #ifdef HOST_TEST
  /* Preview harness has no camera file: place three sample markers. */
  if(camera_count==0){
   s32 la[3]={gps.lat+300,gps.lat-350,gps.lat+80},lo[3]={gps.lon-520,gps.lon+640,gps.lon+120};
   for(int k=0;k<3;k++){
    int x,y;world_to_screen(la[k],lo[k],z,&x,&y);
-   if(x>0&&x<W&&y>MAP_TOP&&y<MAP_BOTTOM)hud_camera_sign(x,y,20);
+   if(x>0&&x<W&&y>MAP_TOP&&y<MAP_BOTTOM){hud_camera_sign(x,y,size);}
   }
   return;
  }
@@ -2419,7 +2427,7 @@ static void draw_camera_markers(int z){
   if(c.lat>vl+7000)break;
   int x,y;world_to_screen(c.lat,c.lon,z,&x,&y);
   if(x<-14||x>W+14||y<MAP_TOP-14||y>MAP_BOTTOM+14)continue;
-  hud_camera_sign(x,y,20);
+  hud_camera_sign(x,y,size);
  }
 }
 /* Compact approach popup: right edge, above the speed/limit card, so the road
@@ -2429,15 +2437,20 @@ static void draw_camera_popup(void){
  char title[64];title[0]=0;camera_alert_text(title,sizeof(title));
  char dist[32];dist[0]=0;camera_distance_text(dist,sizeof(dist));
  int w=156,h=142,x=W-8-w,y=HUD_BOTTOM_Y-h-10;
- round_rect(x-2,y-2,w+4,h+4,10,C_BORDER,15);
- round_rect(x,y,w,h,8,C_PANEL,15);
+ /* Warm amber card so an approach stands out without hiding the road. */
+ u16 edge=theme_resolved?rgb(206,140,54):rgb(226,146,42);
+ u16 face=theme_resolved?rgb(122,74,20):rgb(255,216,158);
+ u16 ink=theme_resolved?rgb(255,246,232):rgb(58,36,8);
+ u16 sub=theme_resolved?rgb(240,208,170):rgb(124,80,28);
+ round_rect(x-2,y-2,w+4,h+4,10,edge,15);
+ round_rect(x,y,w,h,8,face,15);
  hud_camera_sign(x+w/2,y+48,72);
- compact_center(x+w/2,y+94,w-16,0,title,C_WHITE);
- compact_center(x+w/2,y+114,w-16,0,dist,C_MUTED);
+ compact_center(x+w/2,y+94,w-16,0,title,ink);
+ compact_center(x+w/2,y+114,w-16,0,dist,sub);
 }
 static void draw_map(void){
  u32 now=hud_now_ms();freecam_orientation_anim_update(now);hud_prepare(active_zoom(),now,1);hud_driver_prepare(now);
- draw_map_background();draw_camera_markers(active_zoom());hud_draw_all(hud_now_ms(),1);draw_camera_popup();
+ draw_map_background();hud_draw_all(hud_now_ms(),1);draw_camera_popup();
 }
 
 static int read_places(const char*path,struct SavedPlace*a,int cap){long fd=s_open(path,O_RDONLY_,0);if(fd<0)return 0;u32 magic=0,count=0;if(s_read((int)fd,&magic,4)!=4||s_read((int)fd,&count,4)!=4||(magic!=0x31504c43u&&magic!=0x32504c43u)){s_close((int)fd);return 0;}if(count>(u32)cap)count=(u32)cap;int got=0;for(u32 i=0;i<count;i++){if(magic==0x31504c43u){struct LegacyPlace o;if(s_read((int)fd,&o,sizeof(o))!=(long)sizeof(o))break;o.name[31]=0;a[i].lat=o.lat;a[i].lon=o.lon;copystr(a[i].name,sizeof(a[i].name),o.name);}else{if(s_read((int)fd,&a[i],sizeof(a[i]))!=(long)sizeof(a[i]))break;a[i].name[160]=0;char n[161];copystr(n,sizeof(n),a[i].name);copystr(a[i].name,sizeof(a[i].name),n);}got++;}s_close((int)fd);return got;}
@@ -2561,9 +2574,9 @@ static void draw_bluetooth(void){
 static int set_focus=0;
 static void settingrow(int y,const char*l,const char*v,int f){int vw=width(v,1);if(vw<76)vw=76;if(vw>180)vw=180;int vx=446-vw;ui_choice(18,y-5,444,26,f);compact_fit(30,y-2,vx-42,1,l,ui_choice_text(f));compact_fit(vx,y-2,vw,1,v,f?C_ACTIVE_TEXT:C_MUTED);}
 static const char* theme_value(void){if(pref.theme==THEME_DAY)return"DAY";if(pref.theme==THEME_NIGHT)return"NIGHT";return"AUTO";}
-enum {SETTING_COUNT=10,SETTING_VISIBLE_ROWS=7};
+enum {SETTING_COUNT=11,SETTING_VISIBLE_ROWS=7};
 static int theme_time_part;
-static const char* setting_names[]={"Brightness","Theme","Units","Auto zoom","Camera alerts","Clock","Debug log","Language","Day starts","Night starts"};
+static const char* setting_names[]={"Brightness","Theme","Units","Auto zoom","Camera alerts","Clock","Debug log","Language","Day starts","Night starts","Both directions"};
 static const char* units_value(void){return pref.units==1?ui_tr("Metric"):pref.units==2?ui_tr("Imperial"):ui_tr("Auto");}
 static const char* setting_value(int row,char b[96]){
  switch(row){
@@ -2582,6 +2595,7 @@ static const char* setting_value(int row,char b[96]){
   append_int(b,96,mins%60);if(ui_language_rtl())appendstr(b,96,"\xe2\x81\xa9");return b;
  }
  case 6:return ui_tr(pref.debug?"On":"Off");
+ case 10:return pref.camdir?ui_tr("On"):ui_tr("Off");
  case 8:case 9:{
   int minute=row==8?pref.day_start:pref.night_start;
   b[0]='0'+minute/60/10;b[1]='0'+minute/60%10;b[2]=':';
@@ -2598,7 +2612,7 @@ static void draw_settings(void){
   int i=first+row,y=MENU_BODY_Y+5+row*28;
   char b[96];const char*value=setting_value(i,b);
   settingrow(y,ui_tr(setting_names[i]),value,set_focus==i);
-  if(i==set_focus&&i>=8){
+  if(i==set_focus&&(i==8||i==9)){
    char prefix[4]={b[0],b[1],':',0},part[3]={b[theme_time_part?3:0],b[theme_time_part?4:1],0};
    int x=446-76+(theme_time_part?width(prefix,1):0);
    round_rect(x,y+16,width(part,1),1,0,C_ACTIVE_TEXT,15);
@@ -2610,10 +2624,11 @@ static void draw_settings(void){
 static void settings_key(int code){
  if(code==K_UP){if(set_focus>0)set_focus--;theme_time_part=0;return;}
  if(code==K_DOWN){if(set_focus<SETTING_COUNT-1)set_focus++;theme_time_part=0;return;}
- if(code==K_ENTER&&set_focus>=8){theme_time_part=!theme_time_part;return;}
+ if(code==K_ENTER&&(set_focus==8||set_focus==9)){theme_time_part=!theme_time_part;return;}
  if(code==K_ENTER&&set_focus==5){
   pref.clock_auto=!pref.clock_auto;clock_next_ms=0;clock_service();
  }else if(code==K_ENTER&&set_focus==7)pref.language=(pref.language+1)%UI_LANGUAGE_COUNT;
+  else if(code==K_ENTER&&set_focus==10)pref.camdir=!pref.camdir;
  else if(code==K_LEFT||code==K_RIGHT){
   int d=code==K_RIGHT?1:-1;
   switch(set_focus){
@@ -2631,6 +2646,7 @@ static void settings_key(int code){
    else{pref.autozoom=1;auto_zoom_level=-1;}
    zoom_override=-1;break;
   case 4:pref.cameras=(pref.cameras+d+3)%3;break;
+   case 10:pref.camdir=!pref.camdir;break;
   case 5:{
    pref.clock_auto=0;int m=pref.hoff*60+pref.moff+d*15;
    if(m< -720)m=840;if(m>840)m=-720;pref.hoff=m/60;pref.moff=m%60;break;
@@ -2664,7 +2680,7 @@ static int input_lock=-1;
 static int known_remote_key(int code){return code==K_ESC||code==K_BACK||code==K_SR||code==K_ENTER||code==K_UP||code==K_LEFT||code==K_RIGHT||code==K_DOWN||code==K_MAP||code==K_MENU||code==K_ROTN||code==K_ROTP;}
 static void input_log2(const char*tag,int ev,int code){if(!pref.debug)return;char b[72];b[0]=0;appendstr(b,sizeof(b),tag);appendstr(b,sizeof(b)," event");append_int(b,sizeof(b),ev);if(code>=0){appendstr(b,sizeof(b)," code=");append_int(b,sizeof(b),code);}log_append(KEY_LOG,b);}
 static void scan_inputs(void){char p[]="/dev/input/event0";for(int i=0;i<INPUT_MAX;i++){if(infd[i]>=0)continue;p[16]=(char)('0'+i);long fd=s_open(p,O_RDONLY_|O_NONBLOCK_,0);if(fd>=0){infd[i]=(int)fd;input_log2("INPUT OPEN",i,-1);}}}
-static void open_inputs(void){for(int i=0;i<INPUT_MAX;i++)infd[i]=-1;input_lock=-1;if(pref.debug)log_append(KEY_LOG,"--- RENATKA 2.2.5 COMPACT MEDIA INPUT ---");scan_inputs();}
+static void open_inputs(void){for(int i=0;i<INPUT_MAX;i++)infd[i]=-1;input_lock=-1;if(pref.debug)log_append(KEY_LOG,"--- RENATKA 2.4.0 BEEP COMPACT MEDIA INPUT ---");scan_inputs();}
 static void keydiag(int code){if(!pref.debug)return;char b[48]="KEY code=";append_int(b,sizeof(b),code);log_append(KEY_LOG,b);}
 static void key_handle_state(int code){render_background_dirty=1;keydiag(code);
 /* RENATKA: physical-console rotary knob. The CSW reader maps the Scenic/Megane
@@ -2748,7 +2764,7 @@ if(screen==SCR_MAP){
   if(code==K_ENTER){if(freecam){pending_lat=cam_lat;pending_lon=cam_lon;pending_point_stop=trip.active?1:0;modal=MOD_ROUTE_POINT;modal_choice=0;}else hud_pulse(&hud_navigation,route_status==R_READY?HUD_JOURNEY:HUD_HEADING,route_status==R_READY?4200:2300);return;}
   if(code==K_UP||code==K_DOWN||code==K_LEFT||code==K_RIGHT){int was=freecam;pan_freecam(code);if(!was&&freecam)hud_pulse(&hud_navigation,HUD_EXPLORE,1800);return;}
   if(code==K_ESC||code==K_SR){
-    int z=active_zoom(),up=code==K_SR,lo=mapok?(int)mh.minlvl:0;
+    int z=active_zoom(),up=code==K_SR,lo=freecam?explore_min_zoom():(mapok?(int)mh.minlvl:0);
     /* RENATKA: manual driving zoom may use Z7/Z8; autozoom stays at the Z6 tile ceiling. */
     int hi=freecam?MAX_EXPLORE_ZOOM:(pref.autozoom?(mapok?(int)mh.maxlvl:6):DRIVE_MAX_ZOOM);if(!freecam&&hi>6&&pref.autozoom)hi=6;
     int next=z+(up?1:-1);
@@ -3124,7 +3140,7 @@ static void run(void){
 #endif
 #endif
  load_prefs();debug_state_write();load_last_fix();seed_boot_theme();if(!pref.debug)remove_stale_logs();load_last_audio();nrecents=read_places(RECENT_PATH,recents,RECENT_MAX);nfaves=read_places(FAVES_PATH,faves,FAVE_MAX);load_trip();apply_brightness();load_map();load_timezones();load_regions();load_cameras();seed_boot_map_view();load_route_data();s_unlink(BT_CMD_PATH);bt_write_small(BT_ACTIVE_PATH,"0\n");bt_active_written=0;bt_name_cache_load();bt_poll_status();if(trip.active){modal=MOD_RESUME_TRIP;modal_choice=0;}open_inputs();csw_init();
-  int wdfd=(int)s_open(WD_PATH,O_WRONLY_,0);debug_log(STATE_LOG,"RENATKA 2.2.5 COMPACT REV16 LOWCAM224 ROADTRACE1 BTNAMECACHE1 LOWCAM224 AUTOZOOM654 PERF8 NAV QAD7+UI6+MEDIA3+FREECAM-BIDIR-ANIM+PACKETS+MMAP+STALL+REPAIRSAFE TRIPFLOW GPSRESUME BTMEDIA CPR2-v5 ATLAS1 CLOCK1 CAMERA2 ROUTE RUNTIME");debug_log(STATE_LOG,qadjmode==7?(qadj_map_ok?"QAD7 PACKET+MMAP QUERY ENABLED":"QAD7 PAGED QUERY ENABLED"):(qadjmode==6?(qadj_map_ok?"QAD6 GEOMMETA+MMAP QUERY ENABLED":"QAD6 PAGED QUERY ENABLED"):(qadjmode==5?(qadj_map_ok?"QAD5 MMAP+STALL QUERY ENABLED":"QAD5 PAGED+STALL QUERY ENABLED"):(qadjmode==4?"QAD4 LOCAL-RECON QUERY ENABLED":(qadjmode==3?"QAD3 GROUP QUERY+RECON ENABLED":(qadjmode==2?"QAD2 NODE-BLOCK QUERY ENABLED (PAGED INDEX)":(qadjmode==1?"QAD1 FAST QUERY ENABLED":"QADJ FAST QUERY FALLBACK CPR2")))))));if(qadjmode==6&&qadj6_legacy_header)debug_log(STATE_LOG,"QAD6 DEV5.31 HEADER COMPAT ENABLED");{char mb[96];mb[0]=0;appendstr(mb,sizeof(mb),"MMAP QAD=");append_int(mb,sizeof(mb),qadj_map_ok);appendstr(mb,sizeof(mb)," GEOM=");append_int(mb,sizeof(mb),route_geom_map_ok);debug_log(STATE_LOG,mb);}u32 tick=0,next_model=s_now_ms(),next_input=next_model;render_runtime_reset(next_model);
+  int wdfd=(int)s_open(WD_PATH,O_WRONLY_,0);debug_log(STATE_LOG,"RENATKA 2.4.0 BEEP COMPACT REV16 LOWCAM224 ROADTRACE1 BTNAMECACHE1 LOWCAM224 AUTOZOOM654 PERF8 NAV QAD7+UI6+MEDIA3+FREECAM-BIDIR-ANIM+PACKETS+MMAP+STALL+REPAIRSAFE TRIPFLOW GPSRESUME BTMEDIA CPR2-v5 ATLAS1 CLOCK1 CAMERA2 ROUTE RUNTIME");debug_log(STATE_LOG,qadjmode==7?(qadj_map_ok?"QAD7 PACKET+MMAP QUERY ENABLED":"QAD7 PAGED QUERY ENABLED"):(qadjmode==6?(qadj_map_ok?"QAD6 GEOMMETA+MMAP QUERY ENABLED":"QAD6 PAGED QUERY ENABLED"):(qadjmode==5?(qadj_map_ok?"QAD5 MMAP+STALL QUERY ENABLED":"QAD5 PAGED+STALL QUERY ENABLED"):(qadjmode==4?"QAD4 LOCAL-RECON QUERY ENABLED":(qadjmode==3?"QAD3 GROUP QUERY+RECON ENABLED":(qadjmode==2?"QAD2 NODE-BLOCK QUERY ENABLED (PAGED INDEX)":(qadjmode==1?"QAD1 FAST QUERY ENABLED":"QADJ FAST QUERY FALLBACK CPR2")))))));if(qadjmode==6&&qadj6_legacy_header)debug_log(STATE_LOG,"QAD6 DEV5.31 HEADER COMPAT ENABLED");{char mb[96];mb[0]=0;appendstr(mb,sizeof(mb),"MMAP QAD=");append_int(mb,sizeof(mb),qadj_map_ok);appendstr(mb,sizeof(mb)," GEOM=");append_int(mb,sizeof(mb),route_geom_map_ok);debug_log(STATE_LOG,mb);}u32 tick=0,next_model=s_now_ms(),next_input=next_model;render_runtime_reset(next_model);
   for(;;){
     u32 now=s_now_ms();int model_due=frame_due(now,next_model);
     if(frame_due(now,next_input)){poll_keys();poll_csw();next_input=frame_after(next_input,now,33u);}

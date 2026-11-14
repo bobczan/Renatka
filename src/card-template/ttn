@@ -1,12 +1,18 @@
 #!/bin/sh
 # ClioPlay 0.4.0-dev9.4 bootstrap
 # Persistent logs exist only when prefs.ini has debug=1.
-SD=/mnt/sdcard
+SD=""
+TRIES=0
+while [ -z "$SD" ] && [ "$TRIES" -lt 10 ]; do
+  for C in /media/sdcard /mnt/sdcard /mnt/mmc /media/mmc; do
+    if [ -f "$C/clio843/clio040" ]; then SD=$C; break; fi
+  done
+  [ -n "$SD" ] && break
+  TRIES=`expr $TRIES + 1`
+  sleep 1
+done
+[ -z "$SD" ] && SD=/mnt/sdcard
 CD=$SD/clio843
-if [ ! -f "$CD/clio040" ]; then SD=/media/sdcard; CD=$SD/clio843; fi
-if [ ! -f "$CD/clio040" ]; then SD=/mnt/mmc; CD=$SD/clio843; fi
-if [ ! -f "$CD/clio040" ]; then SD=/media/mmc; CD=$SD/clio843; fi
-echo "boot $SD" >> "$CD/bootdiag.txt" 2>/dev/null
 PREF=$CD/prefs.ini
 STATE=$CD/state.log
 DEBUG=0
