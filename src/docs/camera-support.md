@@ -6,7 +6,18 @@ Reviewed 20 October 2026. This table controls GPS database alerts, including cam
 
 **Exact alerts blocked:** Switzerland (CH), Republic of Cyprus (CY), Germany (DE), France (FR). No invented French danger-zone mode is substituted.
 
-**Other territories:** disabled pending a GPS-specific policy review. This is a product decision, not a statement that alerts are illegal there. The JSON contains an explicit state for all 260 country profiles. Adding a language does not establish legal permission in countries using it.
+**Other territories:** disabled pending a GPS-specific policy review.
+
+## In-car settings
+
+| Setting | Values | Effect |
+|---|---|---|
+| Camera alerts | Off / Visual / Phone audio | Off hides markers and silences alerts. Visual draws the markers and the approach card. Phone audio adds the cue. |
+| Both directions | On / Off | On ignores the +/-45 degree heading filter, so a camera facing the opposite carriageway still alerts. Off warns only for the direction the record enforces. |
+| Camera volume | 10-100 % | Gain of the cue. Read from `prefs.ini` when an alert fires, so a change applies to the next camera. Default 70 %. |
+
+The cue is synthesised into the Bluetooth A2DP stream: it plays when the phone is the active audio source and stays silent over FM/radio or when BT audio is paused. One cue per camera, remembered for five minutes.
+ This is a product decision, not a statement that alerts are illegal there. The JSON contains an explicit state for all 260 country profiles. Adding a language does not establish legal permission in countries using it.
 
 ## Supported languages and examples
 

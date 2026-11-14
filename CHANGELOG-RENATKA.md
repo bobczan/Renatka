@@ -8,7 +8,7 @@ If you are an AI model picking this up: read §3 before touching anything. Most
 of the surprises were in the car, not in the code.
 
 - **Upstream base:** `pxwel-dev/ClioPlay` commit `7a962e2` (upstream says `2.0.0`)
-- **Renatka version:** `2.4.0` (`src/VERSION`), versioned independently of upstream
+- **Renatka version:** `2.4.1` (`src/VERSION`), versioned independently of upstream
 - **Target car:** Renault Scénic III (2010), Carminat TomTom non-LIVE,
   `hw_remote=0`, `hw_handsfree=0`, `hw_bluetooth=1`, Linux 2.6.13 / S3C2443
 - **Fork:** `https://github.com/bobczan/Renatka`
@@ -21,7 +21,8 @@ of the surprises were in the car, not in the code.
 
 | Renatka | Upstream base | Notes |
 | --- | --- | --- |
-| **2.4.0** | `7a962e2` | current. Camera markers and the approach popup finally reach the screen. The 2.2.5/2.2.6 drawing calls sat in `draw_map()`, which the device renderer never calls: a frame is composited from `draw_map_background()` (cached map layer) plus `render_present()` (HUD). Markers now draw in the map layer and the popup in the presentation pass. Adds a deep 520->390 Hz two-tone cue fired at 400 m together with the popup (Settings -> Camera alerts -> Phone audio; the tone is mixed into the BT A2DP stream), a "Both directions" setting that bypasses the +/-45 degree heading filter, a light-orange popup card, markers hidden below Z2 and an Explore zoom floor at Z2 so full zoom-out cannot stall the renderer. All diagnostic logging removed and device logs erased. |
+| **2.4.1** | `7a962e2` | current. Camera-cue volume is adjustable (10-100%, default 70%) in Settings; the audio daemon reads it from prefs at alert time, so a change applies to the next camera without a restart. Adds the "Both directions" and "Camera volume" rows next to the existing Camera alerts choice (Off / Visual / Phone audio). |
+| 2.4.0 | `7a962e2` | Camera markers and the approach popup finally reach the screen. The 2.2.5/2.2.6 drawing calls sat in `draw_map()`, which the device renderer never calls: a frame is composited from `draw_map_background()` (cached map layer) plus `render_present()` (HUD). Markers now draw in the map layer and the popup in the presentation pass. Adds a deep 520->390 Hz two-tone cue fired at 400 m together with the popup (Settings -> Camera alerts -> Phone audio; the tone is mixed into the BT A2DP stream), a "Both directions" setting that bypasses the +/-45 degree heading filter, a light-orange popup card, markers hidden below Z2 and an Explore zoom floor at Z2 so full zoom-out cannot stall the renderer. All diagnostic logging removed and device logs erased. |
 | 2.2.5 | `7a962e2` | superseded: its camera drawing calls were unreachable on the device, so the feature never appeared on the car. Kept here because the mistake is instructive. |
 | 2.2.4 | `7a962e2` | Boot shows the theme that was last in use instead of guessing from the unit clock, so there is no day/night flash at startup; clock time and date are only accepted with a valid GPS fix, so no 23:59 to 00:00 jump; the speed digits and limit sign no longer crossfade on every change (that was the blinking), and the journey ETA stays on screen while a route is active. |
 | 2.2.3 | `7a962e2` | With no known limit the speed pill sits in the corner, 8 px from the right and bottom edges. With a limit, the card grows into a panel that holds the unframed sign and the speed's own pill; the change eases over 320 ms and the sign fades in with the growth. |

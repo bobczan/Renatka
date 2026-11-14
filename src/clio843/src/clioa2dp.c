@@ -645,10 +645,23 @@ static int av_signal(int fd,const u8*b,int n){if(n<2)return 1;int tl=(b[0]>>4)&1
 }
 #include "audio_chime.h"
 static struct AudioChime camera_chime;
+/* Camera cue volume (0..100 in prefs.ini, default 70) as a 0..256 gain. */
+static unsigned camera_volume_q8(void){
+ char b[512];long f=s_open(PREF_PATH,O_RDONLY_,0);if(f<0)return 179;
+ long n=s_read((int)f,b,sizeof(b)-1);s_close((int)f);if(n<=0)return 179;b[n]=0;
+ for(long i=0;i+7<n;i++){
+  if(i&&b[i-1]!='\n')continue;
+  if(b[i]!='c'||b[i+1]!='a'||b[i+2]!='m'||b[i+3]!='v'||b[i+4]!='o'||b[i+5]!='l'||b[i+6]!='=')continue;
+  long q=i+7;int v=0,seen=0;
+  while(q<n&&b[q]>='0'&&b[q]<='9'){v=v*10+(b[q]-'0');q++;seen=1;if(v>100)v=100;}
+  if(seen){if(v<10)v=10;return (unsigned)(v*256/100);}
+ }
+ return 179;
+}
 static u32 alert_seq=0,alert_idle_until=0,alert_last_media=0;
 static u32 alert_now_ms(void){struct {long sec,nsec;}t;if(sc2(263,1,(long)&t)>=0)return (u32)t.sec*1000u+(u32)(t.nsec/1000000L);return snd_now_ms();}
 static void alert_service(void){u32 now=alert_now_ms(),msg[4];snd_feed_now=now;long f=s_open(CAMERA_ALERT_PATH,O_RDONLY_,0);
- if(f>=0){long n=s_read((int)f,msg,sizeof(msg));s_close((int)f);if(n==sizeof(msg)&&msg[0]==0x4c414c43u&&msg[2]!=alert_seq){alert_seq=msg[2];if(!msg[3]){camera_chime.total=0;alert_idle_until=0;if(sndfd>=0&&now-alert_last_media>200)snd_close();}else if(source_active&&(s32)(msg[2]-now)>=0&&(s32)(msg[2]-now)<=1500&&snd_open()){chime_start(&camera_chime,udiv32(44100u,(u32)snd_div));alert_idle_until=now+1100u;}}}
+ if(f>=0){long n=s_read((int)f,msg,sizeof(msg));s_close((int)f);if(n==sizeof(msg)&&msg[0]==0x4c414c43u&&msg[2]!=alert_seq){alert_seq=msg[2];if(!msg[3]){camera_chime.total=0;alert_idle_until=0;if(sndfd>=0&&now-alert_last_media>200)snd_close();}else if(source_active&&(s32)(msg[2]-now)>=0&&(s32)(msg[2]-now)<=1500&&snd_open()){chime_start(&camera_chime,udiv32(44100u,(u32)snd_div),camera_volume_q8());alert_idle_until=now+1100u;}}}
  if(!source_active){camera_chime.total=0;alert_idle_until=0;return;}
  if(!alert_idle_until)return;
  if((s32)(now-alert_idle_until)>=0){alert_idle_until=0;if(now-alert_last_media>200&&sndfd>=0)snd_close();return;}
