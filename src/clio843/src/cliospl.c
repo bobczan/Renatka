@@ -156,7 +156,7 @@ static void spl_render(int night){
  label(groupx+(groupw-textw)/2-left,groupy+icon+gap-top,6,title,night?rgb(249,250,255):rgb(23,29,38),0);
 }
 static int spl_present(void){long fd=s_open(SPLASH_FB,1,0);if(fd<0)return 0;unsigned done=0;while(done<sizeof(fb)){long n=s_write(fd,(const u8*)fb+done,sizeof(fb)-done);if(n<=0)break;done+=(unsigned)n;}s_close(fd);return done==sizeof(fb);}
-static int spl_run(void){spl_load_prefs();int night=clio_boot_night(spl_theme,spl_clock_utc(),spl_offset,spl_day_start,spl_night_start,spl_saved_theme());spl_brightness();spl_render(night);return spl_present()?0:1;}
+static int spl_run(void){spl_load_prefs();int night=clio_boot_night_saved(spl_theme,spl_clock_utc(),spl_offset,spl_day_start,spl_night_start,spl_saved_theme());spl_brightness();spl_render(night);return spl_present()?0:1;}
 #ifndef HOST_TEST
 __attribute__((noreturn))void _start(void){s_exit(spl_run());}
 #else

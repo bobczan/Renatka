@@ -211,6 +211,12 @@ static void hud_prepare(int z,u32 now,int map){
   else if(route_status>=R_NOFILE)hud_pulse_at(&hud_navigation,HUD_FAILURE,now,4200);
   else if(route_status==R_IDLE&&(hud_navigation.kind==HUD_JOURNEY||hud_navigation.kind==HUD_FAILURE))hud_navigation.kind=HUD_NONE;
  }
+ /* RENATKA: keep the journey ETA on screen for as long as a route is set,
+  * instead of only for four seconds after pressing OK. */
+ if(map&&!freecam&&trip.active&&route_status==R_READY){
+  if(!hud_pulse_live(&hud_navigation,now))hud_pulse_at(&hud_navigation,HUD_JOURNEY,now,4200);
+  else if((s32)(hud_navigation.until-now)<1200)hud_navigation.until=now+4200;
+ }
  int media=map&&!freecam&&bt_control_mode&&bt_controls_available();
  int nav=hud_navigation.kind;
  int urgent=route_status==R_CALC?HUD_CALC:(nav==HUD_FAILURE?HUD_FAILURE:HUD_NONE);
@@ -571,6 +577,9 @@ static void hud_draw_card(int id,u32 now){
  struct HudBox b=id==HC_STATUS?hud_status_pose(now):hud_pose(t,now);if(b.a<=0)return;
  int alpha,shift;
  const struct HudCard*c=hud_ink_card(t,now,&alpha,&shift);
+ /* RENATKA: speed and limit are live numbers; crossfading them on every
+  * change produced visible blinking, so they swap instantly. */
+ if(id==HC_SPEED){alpha=16;shift=0;c=&t->target;}
  int red=id==HC_SPEED?hud_speed_red(now):0;
  hud_glass(b,red);
  int ox=clip_x,oy=clip_y,or=clip_right,ob=clip_bottom;

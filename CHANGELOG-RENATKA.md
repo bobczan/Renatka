@@ -8,7 +8,7 @@ If you are an AI model picking this up: read §3 before touching anything. Most
 of the surprises were in the car, not in the code.
 
 - **Upstream base:** `pxwel-dev/ClioPlay` commit `7a962e2` (upstream says `2.0.0`)
-- **Renatka version:** `2.2.3` (`src/VERSION`), versioned independently of upstream
+- **Renatka version:** `2.2.4` (`src/VERSION`), versioned independently of upstream
 - **Target car:** Renault Scénic III (2010), Carminat TomTom non-LIVE,
   `hw_remote=0`, `hw_handsfree=0`, `hw_bluetooth=1`, Linux 2.6.13 / S3C2443
 - **Fork:** `https://github.com/bobczan/Renatka`
@@ -21,7 +21,8 @@ of the surprises were in the car, not in the code.
 
 | Renatka | Upstream base | Notes |
 | --- | --- | --- |
-| **2.2.3** | `7a962e2` | current. With no known limit the speed pill sits in the corner, 8 px from the right and bottom edges. With a limit, the card grows into a panel that holds the unframed sign and the speed's own pill; the change eases over 320 ms and the sign fades in with the growth. |
+| **2.2.4** | `7a962e2` | current. Boot shows the theme that was last in use instead of guessing from the unit clock, so there is no day/night flash at startup; clock time and date are only accepted with a valid GPS fix, so no 23:59 to 00:00 jump; the speed digits and limit sign no longer crossfade on every change (that was the blinking), and the journey ETA stays on screen while a route is active. |
+| 2.2.3 | `7a962e2` | With no known limit the speed pill sits in the corner, 8 px from the right and bottom edges. With a limit, the card grows into a panel that holds the unframed sign and the speed's own pill; the change eases over 320 ms and the sign fades in with the growth. |
 | 2.2.2 | `7a962e2` | speed is its own clock-sized pill sized to the digits; the limit sign is a separate unframed element beside it. |
 | 2.2.0 | `7a962e2` | **proven on the car** — boots and runs. Ports the Renatka work onto upstream's frosted-glass and popup refactor (modals moved into `popups.h`, `key_handle` split). `ttn` simplified to a loop-free path probe with a `bootdiag.txt` breadcrumb. |
 | 2.1.1 | `2c946d8` | packaging fix: regenerated build reports, absolute README links. Binaries differ from 2.1.0 only in the version banner. |
@@ -220,7 +221,7 @@ Ends with `ValueError: Preview input changed; run tools/render_previews.py` —
 **cosmetic**. The binaries are installed before that check, and `install.py`
 never reads `latest.json` / `SHA256SUMS`.
 
-Current hashes: `clio040 a4527a6b…`, `cliospl 97f184dd…`, `clioa2dp b9f52624…`.
+Current hashes: `clio040 808e6d8a…`, `cliospl 97f184dd…`, `clioa2dp b9f52624…`.
 
 ### 6.2 Navigation bundle — must run on ext4
 

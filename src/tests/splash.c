@@ -43,19 +43,22 @@ int main(int argc,char**argv){
  run_case(0,1793984400L,"1",0,1);snapshot(argv[1],"splash-day");
  run_case(1,1793966400L,"0",1,1);snapshot(argv[1],"splash-night");
  // Daily times are local, using the saved UTC +01:00 offset at boot.
- run_case(2,1793923200L+5*3600+59*60,"0",1,1);
- run_case(2,1793923200L+6*3600,"1",0,1);
- run_case(2,1793923200L+16*3600+59*60,"1",0,1);
- run_case(2,1793923200L+17*3600,"0",1,1);
+ run_case(2,1793923200L+5*3600+59*60,"invalid",1,1);
+ run_case(2,1793923200L+6*3600,"invalid",0,1);
+ run_case(2,1793923200L+16*3600+59*60,"invalid",0,1);
+ run_case(2,1793923200L+17*3600,"invalid",1,1);
  test_day=557;test_night=1062;
- run_case(2,1793923200L+8*3600+16*60,"0",1,0);
- run_case(2,1793923200L+8*3600+17*60,"1",0,0);
- run_case(2,1793923200L+16*3600+41*60,"1",0,-1);
- run_case(2,1793923200L+16*3600+42*60,"0",1,-1);
+ run_case(2,1793923200L+8*3600+16*60,"invalid",1,0);
+ run_case(2,1793923200L+8*3600+17*60,"invalid",0,0);
+ run_case(2,1793923200L+16*3600+41*60,"invalid",0,-1);
+ run_case(2,1793923200L+16*3600+42*60,"invalid",1,-1);
  test_day=CLIO_DAY_START;test_night=CLIO_NIGHT_START;
  run_case(2,-1,"0",0,1);run_case(2,-1,"1",1,1);run_case(2,-1,"invalid",1,1);
- run_case(2,1793966400L,"1",0,0);run_case(2,1793966400L,"1",0,-1);
- run_case(8,1793966400L,"1",0,1);
+ /* RENATKA: a stored theme wins at boot even when the clock is valid. */
+ run_case(2,1793923200L+6*3600,"1",1,1);
+ run_case(2,1793923200L+17*3600,"0",0,1);
+ run_case(2,1793966400L,"invalid",0,0);run_case(2,1793966400L,"invalid",0,-1);
+ run_case(8,1793966400L,"invalid",0,1);
  put(SPLASH_PREF,"version=6\ntheme=2\nbright=50\nhoff=1\nmoff=0\n");spl_load_prefs();
  assert(spl_day_start==CLIO_DAY_START&&spl_night_start==CLIO_NIGHT_START&&spl_offset==60);
  puts("Native splash passed: antialiased icon, custom AUTO schedule and saved UTC offset, GPS-independent startup, Day/Night overrides, brightness, exact framebuffer write and unchanged saved theme.");

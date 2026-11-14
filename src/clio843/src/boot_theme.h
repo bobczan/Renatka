@@ -34,4 +34,14 @@ static int clio_boot_night(int mode,long utc,int offset,int day_start,int night_
  int night=clio_schedule_night(clio_theme_local_minute(utc,offset),day_start,night_start);
  return night>=0?night:(saved==0?0:1);
 }
+/* RENATKA: at boot the stored theme is more trustworthy than the unit clock,
+ * which is often unset (23:59) until GPS time arrives. Using it first removes
+ * the day->night->day flash at every start; the live schedule still corrects
+ * the theme once GPS time is valid. */
+static int clio_boot_night_saved(int mode,long utc,int offset,int day_start,int night_start,int saved){
+ if(mode==0)return 0;if(mode==1)return 1;
+ if(saved==0||saved==1)return saved;
+ int night=clio_schedule_night(clio_theme_local_minute(utc,offset),day_start,night_start);
+ return night>=0?night:1;
+}
 #endif
