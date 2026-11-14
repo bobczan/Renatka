@@ -1,24 +1,50 @@
 <!-- Generated from src/docs/repository-readme.md by src/tools/refresh_latest.py. -->
 
-> **This is the Renatka build** for a Renault Scénic III with the physical
-> armrest console. Start with [RENATKA.md](https://github.com/bobczan/Renatka/blob/main/RENATKA.md); the full change history
-> and porting notes are in [CHANGELOG-RENATKA.md](https://github.com/bobczan/Renatka/blob/main/CHANGELOG-RENATKA.md).
+> **Renatka 2.2.1** — a ClioPlay build for a Renault Scénic III with the
+> physical armrest console. Start with [RENATKA.md](https://github.com/bobczan/Renatka/blob/main/RENATKA.md);
+> the full change history and porting notes are in
+> [CHANGELOG-RENATKA.md](https://github.com/bobczan/Renatka/blob/main/CHANGELOG-RENATKA.md).
 >
-> The previous 1.x-era Renatka tree is kept, unchanged, on the
-> [`legacy-1.x`](https://github.com/bobczan/Renatka/tree/legacy-1.x) branch and tag. It is **not** the
-> recommended build: no Scenic console support, no HUD rework.
+> The previous 1.x-era tree is kept on the
+> [`legacy-1.x`](https://github.com/bobczan/Renatka/tree/legacy-1.x) branch and tag.
 
-
-<h1 align="center">ClioPlay</h1>
-<p align="center">Offline navigation and Bluetooth audio for the original Carminat TomTom screen.</p>
+<h1 align="center">Renatka</h1>
+<p align="center">Offline navigation and Bluetooth audio for the Carminat TomTom, with working Scénic III console controls.</p>
 
 <p align="center"><a href="#install">Install</a> · <a href="https://pxwel-dev.github.io/ClioPlay-Send/">Send a destination from your phone</a></p>
 
+## Version
+
+| | |
+| --- | --- |
+| Renatka | **2.2.1** |
+| Upstream | [`pxwel-dev/ClioPlay`](https://github.com/pxwel-dev/ClioPlay) `7a962e2` (ClioPlay 2.0.0) |
+| Fallback | `v2.2.0` is proven on the car; `v2.1.1`, `v2.1.0` and `v2.0.0` are also tagged |
+| Releases | `2.2.1` current · `2.2.0` proven · `2.1.1` packaging fix · `2.1.0` upstream merge · `2.0.0` first 2.0 · `legacy-1.x` the old 1.x tree |
+| History | [CHANGELOG-RENATKA.md](https://github.com/bobczan/Renatka/blob/main/CHANGELOG-RENATKA.md) — every change, the hardware facts behind them, and a porting recipe for the next upstream release |
+
+## What Renatka changes
+
+- **The physical armrest console works out of the box** — nine buttons, joystick,
+  rotary knob and knob press, read straight from `vehicledaemon`'s `RCswPipe`
+  FIFO. No helper daemon, no `/dev/uinput`, no extra binary.
+- **Speed in the bottom-right**, with a round UK speed-limit sign to its left
+  and no `--` placeholder when the limit is unknown.
+- **Manual zoom to Z10**, two steps deeper than upstream, persisted across
+  reboots.
+- **Road colours tuned** for legibility in both day and night themes.
+- **Release identifier** at the bottom of Settings.
+- Everything from ClioPlay 2.0: offline OSM maps, CPR2 routing, cameras,
+  Bluetooth audio, phone destination transfer, 18 languages, frosted-glass HUD.
+
 ## UI previews
+
+Frames below are rendered by this build's own C renderer (`tools/render_previews.py`),
+not mock-ups. Night theme, as in upstream's previews.
 
 | Driving and camera alerts | Trip, favourites and settings |
 | --- | --- |
-| ![Driving with a temporary road name and a camera warning](src/docs/demo/driving.gif) | ![Opening Trip, browsing favourites and switching themes](src/docs/demo/menus.gif) |
+| ![Driving with the round UK speed-limit sign, speed pill, road name and a camera warning](src/docs/demo/driving.gif) | ![Opening Trip, browsing favourites and switching themes](src/docs/demo/menus.gif) |
 
 | Bluetooth playback and volume | Receiving a phone destination |
 | --- | --- |
@@ -63,15 +89,20 @@
 
 ## Compatibility
 
-The primary supported configuration is:
+The configuration this fork is built and tested for:
 
 - Non-Bluetooth radio with a CD player
 - Non-live Carminat TomTom head unit
-- Bluetooth remote control used to operate the Carminat
+- **Renault Scénic III / Mégane armrest console** — no Bluetooth remote needed
 
-Expect support VERY SOON for physical console controls found on vehicles that do not have a Bluetooth remote control for their Carminat unit, such as Renault Scenic and Megane models.
+The console reader lives in `clio040` and is enabled by an empty `csw` file in
+the SD-card root. It reads `vehicledaemon`'s `RCswPipe` FIFO directly; there is
+no helper daemon and no `/dev/uinput`. An optional `cswmap.ini` can rebind any
+control.
 
-I've also confirmed that vehicles which use the physical console controls in place of Bluetooth remote control STILL have integrated Bluetooth hardware inside of their Carminat units, meaning that vehicles that don't have any factory Bluetooth capability in their radios will be able to benefit from Bluetooth audio implemented inside ClioPlay.
+Vehicles that use the physical console still have the Carminat's integrated
+Bluetooth hardware, so Bluetooth audio works the same way as on remote-equipped
+cars.
 
 ClioPlay handles the audio source as follows:
 
@@ -141,6 +172,29 @@ while temporary Manual zoom is active.
 
 See the [full remote controls guide](src/README.md#remote-controls) for actions in
 each screen, including settings, pairing and the favourite keyboard.
+
+## Use your console (Scénic III / Mégane)
+
+On these cars the head unit is driven from the armrest, not a Bluetooth remote.
+Renatka reads that console directly; nothing needs to be installed for it.
+
+| Control | Action |
+| --- | --- |
+| **Top-left key** | Zoom out on the map, or delete a character while typing |
+| **Back** | Go back / dismiss |
+| **Top-right key** | Zoom in on the map, or advance to the next field |
+| **Joystick up / down / left / right** | Pan the map, move through rows, change the selected value |
+| **Knob rotate left / right** | Zoom the map, walk lists and dialogs |
+| **Knob press** | OK — confirm, open, play/pause |
+| **Menu** | Trip / Bluetooth / Settings |
+| **Dest** | Menu (destination entry lives there) |
+| **Map** | Toggle map browsing / return to driving |
+| **Info** | ETA on the map |
+| **Light**, **Repeat** | Not bound |
+
+Controls are decoded from `vehicledaemon`'s FIFO by `clio040` and are enabled by
+an empty `csw` file in the SD-card root. `cswmap.ini` can rebind any of them; see
+[`cswmap.example.ini`](cswmap.example.ini).
 
 ## Status and development
 

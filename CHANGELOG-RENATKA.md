@@ -70,6 +70,8 @@ and the old bottom strip — 2.0's HUD supersedes all of them.
 | `cswmap.example.ini` | new | documents the recovered button map |
 | `splash-preview.png` | new | rendered proof of the splash |
 | `RENATKA.md` | rewritten for 2.0 | user-facing notes |
+| `src/docs/demo/*.gif`, `manifest.json` | regenerated from this build | README previews now show the Renatka UI instead of upstream's |
+| `README.md`, `src/docs/repository-readme.md` | Renatka-first description, version table, console guide, change summary | the repository front page describes this build |
 
 ---
 
