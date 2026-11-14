@@ -1,6 +1,6 @@
 <!-- Generated from src/docs/repository-readme.md by src/tools/refresh_latest.py. -->
 
-> **Renatka 2.2.1** — a ClioPlay build for a Renault Scénic III with the
+> **Renatka 2.2.3** — a ClioPlay build for a Renault Scénic III with the
 > physical armrest console. Start with [RENATKA.md](https://github.com/bobczan/Renatka/blob/main/RENATKA.md);
 > the full change history and porting notes are in
 > [CHANGELOG-RENATKA.md](https://github.com/bobczan/Renatka/blob/main/CHANGELOG-RENATKA.md).
@@ -17,10 +17,10 @@
 
 | | |
 | --- | --- |
-| Renatka | **2.2.1** |
+| Renatka | **2.2.3** |
 | Upstream | [`pxwel-dev/ClioPlay`](https://github.com/pxwel-dev/ClioPlay) `7a962e2` (ClioPlay 2.0.0) |
 | Fallback | `v2.2.0` is proven on the car; `v2.1.1`, `v2.1.0` and `v2.0.0` are also tagged |
-| Releases | `2.2.1` current · `2.2.0` proven · `2.1.1` packaging fix · `2.1.0` upstream merge · `2.0.0` first 2.0 · `legacy-1.x` the old 1.x tree |
+| Releases | `2.2.3` current · `2.2.2` split pill · `2.2.1` sign/road fixes · `2.2.0` upstream merge · `2.1.1` packaging fix · `2.1.0` first 2.1 · `2.0.0` first 2.0 · `legacy-1.x` the old 1.x tree |
 | History | [CHANGELOG-RENATKA.md](https://github.com/bobczan/Renatka/blob/main/CHANGELOG-RENATKA.md) — every change, the hardware facts behind them, and a porting recipe for the next upstream release |
 
 ## What Renatka changes
@@ -42,29 +42,25 @@
 Rendered by this build's own C renderer at 480x272 from real map data, not
 mock-ups. Day and night use the same production draw code as the head unit.
 
-| Day | Night |
+| Day, limit known | Night, limit known |
 | --- | --- |
-| ![Driving with the round speed-limit sign and speed pill, day](src/docs/previews/day-driving.png) | ![Driving, night](src/docs/previews/night-driving.png) |
+| ![Driving: panel holding the round limit sign and the speed's own pill](src/docs/previews/driving-day-223.png) | ![Driving at night](src/docs/previews/driving-night-223.png) |
+
+| No limit known: pill sits in the corner | Estimated limit: grey ring |
+| --- | --- |
+| ![Speed pill alone in the bottom-right corner](src/docs/previews/no-limit-day-223.png) | ![Estimated speed limit with a grey ring](src/docs/previews/estimated-limit-day-223.png) |
 
 | Main menu | Trip itinerary |
 | --- | --- |
-| ![Main menu](src/docs/previews/night-menu.png) | ![Itinerary](src/docs/previews/night-itinerary.png) |
+| ![Main menu](src/docs/previews/menu-night-223.png) | ![Itinerary](src/docs/previews/itinerary-night-223.png) |
 
 | Explore the map | Settings (release shown at the bottom) |
 | --- | --- |
-| ![Explore](src/docs/previews/day-explore.png) | ![Settings](src/docs/previews/day-settings.png) |
+| ![Explore](src/docs/previews/explore-day-223.png) | ![Settings](src/docs/previews/settings-day-223.png) |
 
 | Phone connection | Naming a favourite |
 | --- | --- |
-| ![Phone](src/docs/previews/night-phone.png) | ![Keyboard](src/docs/previews/day-keyboard.png) |
-
-| Estimated speed limit (grey ring) | Volume notice |
-| --- | --- |
-| ![Estimated limit](src/docs/previews/day-hud-estimated-limit.png) | ![Volume](src/docs/previews/day-hud-volume.png) |
-
-| Boot splash | Route overview |
-| --- | --- |
-| ![Boot splash](src/docs/previews/day-splash.png) | ![ETA](src/docs/previews/day-hud-eta.png) |
+| ![Phone](src/docs/previews/phone-night-223.png) | ![Keyboard](src/docs/previews/keyboard-day-223.png) |
 
 ## Compatibility
 

@@ -322,6 +322,19 @@ clio843/card-runtime.json
 
 `C:\Users\PC\opencode\scripts\update_runtime.sh` does exactly this.
 
+### Map data: replace the folder, do not merge
+
+Verified on the car with 2.2.3: to change map data, **delete everything inside
+`clio843/maps` and copy the contents of a complete working map folder** (here
+`C:\Users\PC\Desktop\New folder`, an atlas with seven region packs). That booted
+first time, on a 4 GB card with ~140 MB free.
+
+Copying a new bundle *over* an existing one leaves stale files behind — that is
+one of the ways a card ends up booting the stock TomTom app instead of ClioPlay.
+An atlas needs `atlas.cpa` plus its `r00xx/` folders; the three top-level
+`map.cpm` / `route.cpr` / `route.qadj` from a single-region build are not part of
+an atlas and are ignored while the atlas loads.
+
 ## 7. Logging and card writes
 
 `debug=0` is the shipping default. With it off, no `state.log`, `key.log`,
@@ -340,7 +353,9 @@ survive a restart.
 | Boot, Renatka splash, original play-triangle | works |
 | Map, GPS, speed, speed-limit data | works |
 | All 9 console buttons, joystick, knob rotate/press | works (verified by owner) |
-| Bottom-corner swap, round sign, no-`--`, deeper zoom | verified on build `ca4724e9…` (2.0.0); the 2.1.x rebuilds (`df87adfd…`, `60361bcf…`) are the same code plus the upstream performance merge, awaiting a confirmation run |
+| Bottom-corner swap, round sign, no-`--`, deeper zoom | verified on the car (2.0.0, carried into 2.2.x) |
+| Speed as its own pill, separate sign, settings version line, road contrast | verified on the car with 2.2.1 / 2.2.2 |
+| Corner pill when no limit, panel with sign when known, eased transition | verified on the car with 2.2.3 |
 | Outside temperature | not implemented |
 
 ---
