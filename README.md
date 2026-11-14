@@ -185,7 +185,7 @@ ClioPlay is independent of Renault and TomTom.
 For development, see [contributing](CONTRIBUTING.md) and [building](src/BUILDING.md).
 
 Firmware, map extracts, generated navigation, personal settings and build caches
-are excluded from Git. The [UI previews](src/docs/demo/README.md) use the
-production renderer with controlled host inputs; it does not establish vehicle performance.
+are excluded from Git. The previews in `src/docs/previews/` are rendered by the
+production renderer with controlled host inputs; they do not establish vehicle performance.
 
 <sub>Release files refreshed 13 November 2026 (Europe/London).</sub>
