@@ -333,7 +333,7 @@ static int hud_speed_red(u32 now){
 }
 static void hud_driver_prepare(u32 now){
  struct HudCard speed={0},road={0},road_name={0},turn={0};
- int camera=gps.fix&&camera_visible;
+ int camera=0; /* RENATKA proposal: markers + popup replace the strip alert */
  int show_speed=gps.fix&&(!freecam||camera);
  const char*name=gps.fix&&roadctx.valid?roadctx.street:"";
  if(gps.fix&&roadctx.valid&&!streq(name,hud_last_road)){
@@ -525,12 +525,23 @@ static void hud_draw_status(struct HudBox b,const struct HudCard*c,u32 now){
   hud_rect_ink(x+10,py,track,2,C_BORDER);hud_rect_ink(x+10+off,py,28,2,C_CYAN);
  }
 }
-static void hud_camera_glyph(int cx,int cy,u16 ink,u16 face){
- /* Simple side-on camera: body, viewfinder hump, lens. */
- hud_rect_ink(cx-7,cy-2,15,7,ink);
- hud_rect_ink(cx-4,cy-5,5,3,ink);
- hud_disc(cx+2,cy+1,2,ink);
- hud_disc(cx+2,cy+1,1,face);
+/* RENATKA: UK speed-camera sign - black rounded border, white face, black
+ * camera with a white lens ring and flash bars. Reused at marker and popup
+ * sizes; the details collapse sensibly on the small map markers. */
+static void hud_camera_sign(int cx,int cy,int s){
+ int b=s/10;if(b<2)b=2;
+ u16 ink=rgb(24,24,24),face=rgb(255,255,255);
+ round_rect(cx-s/2,cy-s/2,s,s,s/4,ink,15);
+ round_rect(cx-s/2+b,cy-s/2+b,s-2*b,s-2*b,(s-2*b)/5,face,15);
+ /* Plain camera: body, lens ring, sensor dot. No flash bars. */
+ int bw=s*60/100,bh=s*40/100;
+ int bx=cx-bw/2,by=cy-bh/2;
+ round_rect(bx,by,bw,bh,s/12,ink,15);
+ int lr=s*14/100;if(lr<3)lr=3;
+ int lx=cx-bw*8/100,ly=cy+bh*4/100;
+ hud_disc(lx,ly,lr,face);
+ hud_disc(lx,ly,lr*55/100,ink);
+ int sr=s*4/100;if(sr>0)hud_disc(bx+bw*80/100,by+bh*24/100,sr,face);
 }
 static void hud_draw_camera(int x,int y,int w,const struct HudCard*c){
  int r=17;
@@ -539,12 +550,7 @@ static void hud_draw_camera(int x,int y,int w,const struct HudCard*c){
  if(badge_w>text_w)text_w=badge_w;
  int fixed_w=2*r+HUD_CAMERA_GAP+text_w;
  int start=x+(w-fixed_w)/2;
- int sx=start+r,sy=y+21;
- u16 white=rgb(255,255,255);
- hud_disc(sx,sy,r,white);
- hud_disc(sx,sy,r-1,rgb(206,32,41));
- hud_disc(sx,sy,r-5,white);
- hud_camera_glyph(sx,sy-1,rgb(20,20,20),white);
+ hud_camera_sign(start+r,y+21,34);
  int text_x=start+2*r+HUD_CAMERA_GAP;
  compact_fit(text_x,y+6,text_w,0,c->title,c->ink);
  compact_fit(text_x,y+24,text_w,0,c->badge,c->ink);

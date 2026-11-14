@@ -16,7 +16,7 @@
  */
 
 /* Renatka release identifier, shown at the bottom of Settings. */
-#define RENATKA_VERSION "2.2.4"
+#define RENATKA_VERSION "2.2.5"
 
 typedef unsigned char u8;
 typedef unsigned short u16;
@@ -2397,9 +2397,47 @@ static void draw_map_background(void){
  draw_map_geometry(z);draw_route_overlay(z);if(!freecam)drive_label_render();
  draw_car_marker(z);draw_explore_crosshair();
 }
+/* RENATKA proposal: every camera in view gets the UK sign, route or not. */
+static void draw_camera_markers(int z){
+ if(!pref.cameras)return;
+ if(!gps.fix&&!freecam)return;
+#ifdef HOST_TEST
+ /* Preview harness has no camera file: place three sample markers. */
+ if(camera_count==0){
+  s32 la[3]={gps.lat+300,gps.lat-350,gps.lat+80},lo[3]={gps.lon-520,gps.lon+640,gps.lon+120};
+  for(int k=0;k<3;k++){
+   int x,y;world_to_screen(la[k],lo[k],z,&x,&y);
+   if(x>0&&x<W&&y>MAP_TOP&&y<MAP_BOTTOM)hud_camera_sign(x,y,20);
+  }
+  return;
+ }
+#endif
+ s32 vl=view_lat();
+ for(u32 i=camera_lower(vl-7000);i<camera_count;i++){
+  struct Camera c;
+  if(!camera_read(i,&c))break;
+  if(c.lat>vl+7000)break;
+  int x,y;world_to_screen(c.lat,c.lon,z,&x,&y);
+  if(x<-14||x>W+14||y<MAP_TOP-14||y>MAP_BOTTOM+14)continue;
+  hud_camera_sign(x,y,20);
+ }
+}
+/* Compact approach popup: right edge, above the speed/limit card, so the road
+ * ahead stays visible. */
+static void draw_camera_popup(void){
+ if(!camera_visible||camera_distance>400)return;
+ char title[64];title[0]=0;camera_alert_text(title,sizeof(title));
+ char dist[32];dist[0]=0;camera_distance_text(dist,sizeof(dist));
+ int w=156,h=142,x=W-8-w,y=HUD_BOTTOM_Y-h-10;
+ round_rect(x-2,y-2,w+4,h+4,10,C_BORDER,15);
+ round_rect(x,y,w,h,8,C_PANEL,15);
+ hud_camera_sign(x+w/2,y+48,72);
+ compact_center(x+w/2,y+94,w-16,0,title,C_WHITE);
+ compact_center(x+w/2,y+114,w-16,0,dist,C_MUTED);
+}
 static void draw_map(void){
  u32 now=hud_now_ms();freecam_orientation_anim_update(now);hud_prepare(active_zoom(),now,1);hud_driver_prepare(now);
- draw_map_background();hud_draw_all(hud_now_ms(),1);
+ draw_map_background();draw_camera_markers(active_zoom());hud_draw_all(hud_now_ms(),1);draw_camera_popup();
 }
 
 static int read_places(const char*path,struct SavedPlace*a,int cap){long fd=s_open(path,O_RDONLY_,0);if(fd<0)return 0;u32 magic=0,count=0;if(s_read((int)fd,&magic,4)!=4||s_read((int)fd,&count,4)!=4||(magic!=0x31504c43u&&magic!=0x32504c43u)){s_close((int)fd);return 0;}if(count>(u32)cap)count=(u32)cap;int got=0;for(u32 i=0;i<count;i++){if(magic==0x31504c43u){struct LegacyPlace o;if(s_read((int)fd,&o,sizeof(o))!=(long)sizeof(o))break;o.name[31]=0;a[i].lat=o.lat;a[i].lon=o.lon;copystr(a[i].name,sizeof(a[i].name),o.name);}else{if(s_read((int)fd,&a[i],sizeof(a[i]))!=(long)sizeof(a[i]))break;a[i].name[160]=0;char n[161];copystr(n,sizeof(n),a[i].name);copystr(a[i].name,sizeof(a[i].name),n);}got++;}s_close((int)fd);return got;}
@@ -2626,7 +2664,7 @@ static int input_lock=-1;
 static int known_remote_key(int code){return code==K_ESC||code==K_BACK||code==K_SR||code==K_ENTER||code==K_UP||code==K_LEFT||code==K_RIGHT||code==K_DOWN||code==K_MAP||code==K_MENU||code==K_ROTN||code==K_ROTP;}
 static void input_log2(const char*tag,int ev,int code){if(!pref.debug)return;char b[72];b[0]=0;appendstr(b,sizeof(b),tag);appendstr(b,sizeof(b)," event");append_int(b,sizeof(b),ev);if(code>=0){appendstr(b,sizeof(b)," code=");append_int(b,sizeof(b),code);}log_append(KEY_LOG,b);}
 static void scan_inputs(void){char p[]="/dev/input/event0";for(int i=0;i<INPUT_MAX;i++){if(infd[i]>=0)continue;p[16]=(char)('0'+i);long fd=s_open(p,O_RDONLY_|O_NONBLOCK_,0);if(fd>=0){infd[i]=(int)fd;input_log2("INPUT OPEN",i,-1);}}}
-static void open_inputs(void){for(int i=0;i<INPUT_MAX;i++)infd[i]=-1;input_lock=-1;if(pref.debug)log_append(KEY_LOG,"--- RENATKA 2.2.4 COMPACT MEDIA INPUT ---");scan_inputs();}
+static void open_inputs(void){for(int i=0;i<INPUT_MAX;i++)infd[i]=-1;input_lock=-1;if(pref.debug)log_append(KEY_LOG,"--- RENATKA 2.2.5 COMPACT MEDIA INPUT ---");scan_inputs();}
 static void keydiag(int code){if(!pref.debug)return;char b[48]="KEY code=";append_int(b,sizeof(b),code);log_append(KEY_LOG,b);}
 static void key_handle_state(int code){render_background_dirty=1;keydiag(code);
 /* RENATKA: physical-console rotary knob. The CSW reader maps the Scenic/Megane
@@ -3086,7 +3124,7 @@ static void run(void){
 #endif
 #endif
  load_prefs();debug_state_write();load_last_fix();seed_boot_theme();if(!pref.debug)remove_stale_logs();load_last_audio();nrecents=read_places(RECENT_PATH,recents,RECENT_MAX);nfaves=read_places(FAVES_PATH,faves,FAVE_MAX);load_trip();apply_brightness();load_map();load_timezones();load_regions();load_cameras();seed_boot_map_view();load_route_data();s_unlink(BT_CMD_PATH);bt_write_small(BT_ACTIVE_PATH,"0\n");bt_active_written=0;bt_name_cache_load();bt_poll_status();if(trip.active){modal=MOD_RESUME_TRIP;modal_choice=0;}open_inputs();csw_init();
-  int wdfd=(int)s_open(WD_PATH,O_WRONLY_,0);debug_log(STATE_LOG,"RENATKA 2.2.4 COMPACT REV16 LOWCAM224 ROADTRACE1 BTNAMECACHE1 LOWCAM224 AUTOZOOM654 PERF8 NAV QAD7+UI6+MEDIA3+FREECAM-BIDIR-ANIM+PACKETS+MMAP+STALL+REPAIRSAFE TRIPFLOW GPSRESUME BTMEDIA CPR2-v5 ATLAS1 CLOCK1 CAMERA2 ROUTE RUNTIME");debug_log(STATE_LOG,qadjmode==7?(qadj_map_ok?"QAD7 PACKET+MMAP QUERY ENABLED":"QAD7 PAGED QUERY ENABLED"):(qadjmode==6?(qadj_map_ok?"QAD6 GEOMMETA+MMAP QUERY ENABLED":"QAD6 PAGED QUERY ENABLED"):(qadjmode==5?(qadj_map_ok?"QAD5 MMAP+STALL QUERY ENABLED":"QAD5 PAGED+STALL QUERY ENABLED"):(qadjmode==4?"QAD4 LOCAL-RECON QUERY ENABLED":(qadjmode==3?"QAD3 GROUP QUERY+RECON ENABLED":(qadjmode==2?"QAD2 NODE-BLOCK QUERY ENABLED (PAGED INDEX)":(qadjmode==1?"QAD1 FAST QUERY ENABLED":"QADJ FAST QUERY FALLBACK CPR2")))))));if(qadjmode==6&&qadj6_legacy_header)debug_log(STATE_LOG,"QAD6 DEV5.31 HEADER COMPAT ENABLED");{char mb[96];mb[0]=0;appendstr(mb,sizeof(mb),"MMAP QAD=");append_int(mb,sizeof(mb),qadj_map_ok);appendstr(mb,sizeof(mb)," GEOM=");append_int(mb,sizeof(mb),route_geom_map_ok);debug_log(STATE_LOG,mb);}u32 tick=0,next_model=s_now_ms(),next_input=next_model;render_runtime_reset(next_model);
+  int wdfd=(int)s_open(WD_PATH,O_WRONLY_,0);debug_log(STATE_LOG,"RENATKA 2.2.5 COMPACT REV16 LOWCAM224 ROADTRACE1 BTNAMECACHE1 LOWCAM224 AUTOZOOM654 PERF8 NAV QAD7+UI6+MEDIA3+FREECAM-BIDIR-ANIM+PACKETS+MMAP+STALL+REPAIRSAFE TRIPFLOW GPSRESUME BTMEDIA CPR2-v5 ATLAS1 CLOCK1 CAMERA2 ROUTE RUNTIME");debug_log(STATE_LOG,qadjmode==7?(qadj_map_ok?"QAD7 PACKET+MMAP QUERY ENABLED":"QAD7 PAGED QUERY ENABLED"):(qadjmode==6?(qadj_map_ok?"QAD6 GEOMMETA+MMAP QUERY ENABLED":"QAD6 PAGED QUERY ENABLED"):(qadjmode==5?(qadj_map_ok?"QAD5 MMAP+STALL QUERY ENABLED":"QAD5 PAGED+STALL QUERY ENABLED"):(qadjmode==4?"QAD4 LOCAL-RECON QUERY ENABLED":(qadjmode==3?"QAD3 GROUP QUERY+RECON ENABLED":(qadjmode==2?"QAD2 NODE-BLOCK QUERY ENABLED (PAGED INDEX)":(qadjmode==1?"QAD1 FAST QUERY ENABLED":"QADJ FAST QUERY FALLBACK CPR2")))))));if(qadjmode==6&&qadj6_legacy_header)debug_log(STATE_LOG,"QAD6 DEV5.31 HEADER COMPAT ENABLED");{char mb[96];mb[0]=0;appendstr(mb,sizeof(mb),"MMAP QAD=");append_int(mb,sizeof(mb),qadj_map_ok);appendstr(mb,sizeof(mb)," GEOM=");append_int(mb,sizeof(mb),route_geom_map_ok);debug_log(STATE_LOG,mb);}u32 tick=0,next_model=s_now_ms(),next_input=next_model;render_runtime_reset(next_model);
   for(;;){
     u32 now=s_now_ms();int model_due=frame_due(now,next_model);
     if(frame_due(now,next_input)){poll_keys();poll_csw();next_input=frame_after(next_input,now,33u);}
