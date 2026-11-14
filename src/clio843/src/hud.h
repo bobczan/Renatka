@@ -346,12 +346,19 @@ static void hud_driver_prepare(u32 now){
   append_int(speed.title,sizeof(speed.title),display_speed());
   append_road_limit(speed.detail,sizeof(speed.detail),&roadctx);
   speed.flags=hud_confirmed_limit();
-  /* Renatka 2.2.2: the speed is its own clock-sized pill in the bottom-right;
-   * the limit sign sits beside it with no frame of its own. */
-  int sw=width(speed.title,3);
-  int w=sw+16;
-  if(w>HUD_SIDE_W)w=HUD_SIDE_W;
-  speed.box=hud_box(W-HUD_BOTTOM_MARGIN-w,HUD_BOTTOM_Y+(HUD_BAR_H-27)/2,w,27);
+  /* Renatka 2.2.3: with no known limit the speed pill sits in the corner, the
+   * same distance from the right and bottom edges. With a limit, the card
+   * grows into a panel holding sign + pill, and the pill slides up inside it.
+   * The box change is eased by hud_pose (320 ms). */
+  char lt[8];int sign=hud_sign_text(lt,sizeof(lt));
+  int pw=width(speed.title,3)+16;
+  if(pw>HUD_SIDE_W)pw=HUD_SIDE_W;
+  if(sign){
+   int w=pw+2*HUD_LIMIT_R+HUD_LIMIT_GAP+8;
+   speed.box=hud_box(W-HUD_BOTTOM_MARGIN-w,HUD_BOTTOM_Y,w,HUD_BAR_H);
+  }else{
+   speed.box=hud_box(W-HUD_BOTTOM_MARGIN-pw,H-HUD_BOTTOM_MARGIN-27,pw,27);
+  }
  }
  if(trip.active&&!trip.paused&&gps.fix&&!freecam&&route_status==R_READY&&nav_man_type!=MAN_NONE&&nav_man_idx>=0){
   turn.box=hud_box(HUD_BOTTOM_MARGIN,HUD_BOTTOM_Y,HUD_SIDE_W,HUD_BAR_H);turn.kind=nav_man_type;
@@ -540,9 +547,24 @@ static void hud_speed_sign(int cx,int cy,const char*t,int estimated){
 static void hud_draw_speed(struct HudBox b,const struct HudCard*c){
  char lt[8];
  int sign=hud_sign_text(lt,sizeof(lt));
- compact_center(b.x+b.w/2,b.y+5,b.w-10,3,c->title,C_WHITE);
- /* The sign is its own element to the left of the pill, with no frame. */
- if(sign)hud_speed_sign(b.x-HUD_LIMIT_GAP-HUD_LIMIT_R,b.y+b.h/2,lt,roadctx.speed_flags&1);
+ if(!sign){
+  compact_center(b.x+b.w/2,b.y+5,b.w-10,3,c->title,C_WHITE);
+  return;
+ }
+ /* The card is the panel; the speed keeps its own pill inside it. The sign
+  * fades in as the panel grows, so it does not pop. */
+ int prog=(int)b.h-27;if(prog<0)prog=0;if(prog>22)prog=22;
+ int pa=prog*256/22;
+ int pw=(int)b.w-(2*HUD_LIMIT_R+HUD_LIMIT_GAP+8);
+ struct HudBox pill={b.x+4+2*HUD_LIMIT_R+HUD_LIMIT_GAP,b.y+((int)b.h-27)/2,pw,27,b.a};
+ u16 tint=theme_resolved?rgb(30,44,60):rgb(232,240,248);
+ u16 edge=theme_resolved?rgb(90,112,136):rgb(150,168,186);
+ hud_glass_surface(pill,tint,edge,10u,0);
+ compact_center(pill.x+pw/2,pill.y+5,pw-8,3,c->title,C_WHITE);
+ int save=hud_ink_alpha;
+ hud_ink_alpha=(hud_ink_alpha*pa)/256;
+ hud_speed_sign(b.x+4+HUD_LIMIT_R,b.y+b.h/2,lt,roadctx.speed_flags&1);
+ hud_ink_alpha=save;
 }
 static void hud_draw_card(int id,u32 now){
  struct HudTween*t=&hud_tween[id];if(!t->seen)return;
@@ -555,17 +577,6 @@ static void hud_draw_card(int id,u32 now){
  if(b.x+3>clip_x)clip_x=b.x+3;if(b.y+2>clip_y)clip_y=b.y+2;
  if(b.x+b.w-3<clip_right)clip_right=b.x+b.w-3;
  if(b.y+b.h-2<clip_bottom)clip_bottom=b.y+b.h-2;
- /* RENATKA: the speed-limit sign sits outside the speed pill, so give it room
-  * inside the clip when one is shown. */
- if(id==HC_SPEED){
-  char lt[8];
-  if(hud_sign_text(lt,sizeof(lt))){
-   int cx=b.x-HUD_LIMIT_GAP-HUD_LIMIT_R,cy=b.y+b.h/2;
-   if(cx-HUD_LIMIT_R-2<clip_x)clip_x=cx-HUD_LIMIT_R-2;
-   if(cy-HUD_LIMIT_R-2<clip_y)clip_y=cy-HUD_LIMIT_R-2;
-   if(cy+HUD_LIMIT_R+2>clip_bottom)clip_bottom=cy+HUD_LIMIT_R+2;
-  }
- }
  hud_ink_alpha=(alpha*b.a+128)>>8;
  int x=b.x,y=b.y+shift,w=b.w;
  switch(id){

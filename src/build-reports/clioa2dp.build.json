@@ -23,7 +23,7 @@
     }
   },
   "source": "clio843/src/clioa2dp.c",
-  "source_tree_sha256": "6abb4099ffe47a19cf8103dfb6e5e930730084e21ac686f803b850e54e99edeb",
+  "source_tree_sha256": "beb33de2b3a47f0f5cb48e1d8b2f58c12bdd667e45b7a6c698ae05663f0a8b26",
   "inputs": {
     "clio843/src/arm_runtime.h": "d29e9228583e93e3007b37d42554b916ebef5c9c00c91db71310cd89eaf28bb8",
     "clio843/src/atlas_catalog.h": "b0045a10c40374f77a1865d57be226f40dd313a23c5c38c68b60c3870f42a52b",
@@ -32,7 +32,7 @@
     "clio843/src/audio_playback.h": "25e0f01cd52eb89d447c5ecdf34f57bebeef36135c2912eaa3d49ec1ee7f13e1",
     "clio843/src/audio_schedule.h": "bf37e189f7a0f372567287380820a357878fc1aaf519f85309224cd0d5ae85a6",
     "clio843/src/boot_theme.h": "fa46f1bda9c0f37306c90f34d497192953aa718b30fa688291bbc7a66ddab746",
-    "clio843/src/clio040.c": "72a4bda5ae9ac2de175be67ffb4757d014aa8d4c775dbd6824cf65ffc54f9e40",
+    "clio843/src/clio040.c": "7e9e321747d60e9603883debc1153eb99a1950ae241cecf20cc214a8bb3bd090",
     "clio843/src/clio040.c.rej": "f8f431028e7f2498e79d7e4fd7e7caec7e22d7f5afcb99c8166b91aca1c0fe3c",
     "clio843/src/clioa2dp.c": "73bd71e6bb0f3b435c3d9d29653284549c1e71a33ddcf1e23545a68feb9076a1",
     "clio843/src/cliospl.c": "9187d2f10bff31d59e391f3c9994df06c15bca362d14da5d5a5cc74ab56a78b5",
@@ -45,7 +45,7 @@
     "clio843/src/global_regions.h": "0d777b61772f626eb0dd47ac0c92cb16aaf79d1b6f3f2e6463dc5806bd88eebe",
     "clio843/src/global_text.cc": "45b454fa97ec49eaaca230e4578da4361138ff2c5c410e0e552edd5629231858",
     "clio843/src/global_text.h": "49956b951783a12949ea41c4e2df829837eaa8ecfd644c68e6ca57c70a2208b6",
-    "clio843/src/hud.h": "f6a0c8b68e6d245fc253f2c233e7f6ad65ad05d9313bc04d7d359597c709247f",
+    "clio843/src/hud.h": "feef3fb07b4ca9d84903260a1fa1351c2c98b96f21a8b70328440dea03dd0f2c",
     "clio843/src/hud_glass.h": "89b46b14b3c70f8ecc0e71fe7798ad4867a58aab8715a6eef40f9b6d2edee946",
     "clio843/src/hud_playback.h": "a2757e57a552bf1e03a30b7b62b60bf2ade02cf62ddf565531d2eb753f86f881",
     "clio843/src/hud_status.h": "91f9d2cc57aeae72deebee57974292a8c3033631b4cd11b83d57fdececbaeaed",

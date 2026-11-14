@@ -1,4 +1,4 @@
-# Renatka 2.2.2
+# Renatka 2.2.3
 
 **Renatka** is a ClioPlay build for the Renault Carminat TomTom, made for one
 particular car: a 2010 Renault Scénic III whose head unit is driven from the
@@ -12,7 +12,7 @@ The important consequence for anyone used to upstream: **the armrest console
 works out of the box.** No helper daemon, no `/dev/uinput`, no extra binary. The
 reader lives in `clio040` and is enabled by the empty `csw` file on the card.
 
-> **Version note.** `main` carries 2.1.1; this tree is **2.2.2**, built on the
+> **Version note.** `main` carries 2.1.1; this tree is **2.2.3**, built on the
 > latest upstream. The older 1.x Renatka tree is preserved on the `legacy-1.x`
 > branch and tag; it has no Scenic console support and no HUD rework.
 
