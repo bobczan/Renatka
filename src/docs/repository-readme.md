@@ -39,53 +39,32 @@
 
 ## UI previews
 
-Frames below are rendered by this build's own C renderer (`tools/render_previews.py`),
-not mock-ups. Night theme, as in upstream's previews.
+Rendered by this build's own C renderer at 480x272 from real map data, not
+mock-ups. Day and night use the same production draw code as the head unit.
 
-| Driving and camera alerts | Trip, favourites and settings |
+| Day | Night |
 | --- | --- |
-| ![Driving with the round UK speed-limit sign, speed pill, road name and a camera warning](src/docs/demo/driving.gif) | ![Opening Trip, browsing favourites and switching themes](src/docs/demo/menus.gif) |
+| ![Driving with the round speed-limit sign and speed pill, day](src/docs/previews/day-driving.png) | ![Driving, night](src/docs/previews/night-driving.png) |
 
-| Bluetooth playback and volume | Receiving a phone destination |
+| Main menu | Trip itinerary |
 | --- | --- |
-| ![Temporary volume notice, Bluetooth playback controls and track progress](src/docs/demo/bluetooth.gif) | ![Receiving a destination from the phone on the head unit](src/docs/demo/phone-destination.gif) |
+| ![Main menu](src/docs/previews/night-menu.png) | ![Itinerary](src/docs/previews/night-itinerary.png) |
 
-| Speeding warning | Browse and zoom the map |
+| Explore the map | Settings (release shown at the bottom) |
 | --- | --- |
-| ![The speed pill pulses red above a confirmed limit and settles when speed drops](src/docs/demo/speed-warning.gif) | ![Switching to map browsing, panning, zooming and returning to guidance](src/docs/demo/map-browsing.gif) |
+| ![Explore](src/docs/previews/day-explore.png) | ![Settings](src/docs/previews/day-settings.png) |
 
-| Roundabout route guidance and ETA | Add a stop from favourites |
+| Phone connection | Naming a favourite |
 | --- | --- |
-| ![Third-exit roundabout guidance and journey overview on pressing OK](src/docs/demo/roundabout-eta.gif) | ![Adding a saved favourite to the itinerary before the destination](src/docs/demo/add-stop.gif) |
+| ![Phone](src/docs/previews/night-phone.png) | ![Keyboard](src/docs/previews/day-keyboard.png) |
 
-| Shared status notifications | Song and radio updates |
+| Estimated speed limit (grey ring) | Volume notice |
 | --- | --- |
-| ![GPS acquisition and recovery, phone connection, volume and no-active-route notices share one animated pill](src/docs/demo/status-notifications.gif) | ![A new song appears, updates inside Bluetooth control, then radio tuning changes the frequency](src/docs/demo/metadata-updates.gif) |
+| ![Estimated limit](src/docs/previews/day-hud-estimated-limit.png) | ![Volume](src/docs/previews/day-hud-volume.png) |
 
-| Manual coordinate route | Route to a point on the map |
+| Boot splash | Route overview |
 | --- | --- |
-| ![Enter latitude and longitude, name the destination, calculate the route and find it in Recents](src/docs/demo/coordinate-route.gif) | ![Enter Explore, pan the crosshair, press OK and confirm a route to the selected point](src/docs/demo/map-point-route.gif) |
-
-<table align="center">
-  <thead>
-    <tr>
-      <th>Animated frosted-glass confirmations, choices and popups</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td align="center">
-        <img
-          src="src/docs/demo/popups.gif"
-          alt="Route confirmation, destination choices, Bluetooth actions and keyboard language picker animate smoothly"
-          width="480"
-        >
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-
+| ![Boot splash](src/docs/previews/day-splash.png) | ![ETA](src/docs/previews/day-hud-eta.png) |
 
 ## Compatibility
 
