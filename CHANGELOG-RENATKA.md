@@ -8,7 +8,7 @@ If you are an AI model picking this up: read §3 before touching anything. Most
 of the surprises were in the car, not in the code.
 
 - **Upstream base:** `pxwel-dev/ClioPlay` commit `7a962e2` (upstream says `2.0.0`)
-- **Renatka version:** `2.2.0` (`src/VERSION`), versioned independently of upstream
+- **Renatka version:** `2.2.1` (`src/VERSION`), versioned independently of upstream
 - **Target car:** Renault Scénic III (2010), Carminat TomTom non-LIVE,
   `hw_remote=0`, `hw_handsfree=0`, `hw_bluetooth=1`, Linux 2.6.13 / S3C2443
 - **Fork:** `https://github.com/bobczan/Renatka`
@@ -21,7 +21,8 @@ of the surprises were in the car, not in the code.
 
 | Renatka | Upstream base | Notes |
 | --- | --- | --- |
-| **2.2.0** | `7a962e2` | current. Ports the Renatka work onto upstream's frosted-glass and popup refactor (all modals moved into the new `popups.h`, `key_handle` split). The browsed-point 3-option popup was re-implemented inside `popups.h`. `ttn` simplified to a loop-free card-path probe with a one-line `bootdiag.txt` breadcrumb. |
+| **2.2.1** | `7a962e2` | current. Speed-limit sign face is always white (day mode was drawing it with the dark day text role); release identifier at the bottom of Settings; slightly higher-contrast road colours in both themes. |
+| 2.2.0 | `7a962e2` | **proven on the car** — boots and runs. Ports the Renatka work onto upstream's frosted-glass and popup refactor (modals moved into `popups.h`, `key_handle` split). `ttn` simplified to a loop-free path probe with a `bootdiag.txt` breadcrumb. |
 | 2.1.1 | `2c946d8` | packaging fix: regenerated build reports, absolute README links. Binaries differ from 2.1.0 only in the version banner. |
 | 2.1.0 | `2c946d8` | first 2.1 release. Upstream rendering-performance merge (15 FPS animation target, faster glass/blit, camera and trig caching). Its tag is **not** installable from a clone: the build reports were still upstream's. |
 | 2.0.0 | `baf04be` | first 2.0 release: rebrand, Scenic console support, HUD rework, Z10 zoom. |
@@ -216,7 +217,7 @@ Ends with `ValueError: Preview input changed; run tools/render_previews.py` —
 **cosmetic**. The binaries are installed before that check, and `install.py`
 never reads `latest.json` / `SHA256SUMS`.
 
-Current hashes: `clio040 162f2e29…`, `cliospl 97f184dd…`, `clioa2dp b9f52624…`.
+Current hashes: `clio040 42dae4f7…`, `cliospl 97f184dd…`, `clioa2dp b9f52624…`.
 
 ### 6.2 Navigation bundle — must run on ext4
 

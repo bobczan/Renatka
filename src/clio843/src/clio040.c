@@ -15,6 +15,9 @@
  * fixed-point integer maths only; no libc, malloc, SQLite, protobuf or libm.
  */
 
+/* Renatka release identifier, shown at the bottom of Settings. */
+#define RENATKA_VERSION "2.2.1"
+
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef signed short s16;
@@ -193,13 +196,13 @@ static void apply_palette(int night){
     /* NIGHT: deep charcoal-blue surfaces with a restrained teal focus colour. */
     C_BG=0x0082; C_PANEL=0x1105; C_PANEL2=0x1146; C_BORDER=0x2a09;
     C_CYAN=0x46b9; C_WHITE=0xf7bf; C_BLUE=0x3c97; C_MUTED=0x9d76;
-    C_DIM=0x63af; C_WARN=0xf524; C_ROAD=0x532d; C_WATER=0x1a4c; C_GREEN=0x2b4a;
+    C_DIM=0x8452; C_WARN=0xf524; C_ROAD=0x6b8f; C_WATER=0x1a4c; C_GREEN=0x2b4a;
     C_HEADER=0x08c3; C_PANEL=0x10e4; C_PANEL2=0x1926; C_BORDER=0x39e9; C_CYAN=0x64ff; C_ACTIVE=0x1a2b; C_ACTIVE_TEXT=0xffff; C_ACCENT=0x64ff; C_SHADOW=0x0041; C_HILITE=0x21a7;
   }else{
     /* DAY: warm/cool automotive greys rather than plain white inversion. */
     C_BG=0xef7d; C_PANEL=0xf7be; C_PANEL2=0xdf3c; C_BORDER=0xb618;
     C_CYAN=0x03f1; C_WHITE=0x1146; C_BLUE=0x33f3; C_MUTED=0x534e;
-    C_DIM=0x7c51; C_WARN=0xb340; C_ROAD=0xadb6; C_WATER=0xa6bc; C_GREEN=0x9e55;
+    C_DIM=0x6baf; C_WARN=0xb340; C_ROAD=0x94f3; C_WATER=0xa6bc; C_GREEN=0x9e55;
     C_HEADER=0xe73c; C_PANEL=0xf7be; C_PANEL2=0xe71c; C_BORDER=0xb618; C_CYAN=0x039b; C_ACTIVE=0x039b; C_ACTIVE_TEXT=0xffff; C_ACCENT=0x039b; C_SHADOW=0xb618; C_HILITE=0xffff;
   }
   if(changed)write_theme_state_raw(theme_resolved);
@@ -2518,7 +2521,7 @@ static void draw_bluetooth(void){
 static int set_focus=0;
 static void settingrow(int y,const char*l,const char*v,int f){int vw=width(v,1);if(vw<76)vw=76;if(vw>180)vw=180;int vx=446-vw;ui_choice(18,y-5,444,26,f);compact_fit(30,y-2,vx-42,1,l,ui_choice_text(f));compact_fit(vx,y-2,vw,1,v,f?C_ACTIVE_TEXT:C_MUTED);}
 static const char* theme_value(void){if(pref.theme==THEME_DAY)return"DAY";if(pref.theme==THEME_NIGHT)return"NIGHT";return"AUTO";}
-enum {SETTING_COUNT=10,SETTING_VISIBLE_ROWS=8};
+enum {SETTING_COUNT=10,SETTING_VISIBLE_ROWS=7};
 static int theme_time_part;
 static const char* setting_names[]={"Brightness","Theme","Units","Auto zoom","Camera alerts","Clock","Debug log","Language","Day starts","Night starts"};
 static const char* units_value(void){return pref.units==1?ui_tr("Metric"):pref.units==2?ui_tr("Imperial"):ui_tr("Auto");}
@@ -2561,6 +2564,8 @@ static void draw_settings(void){
    round_rect(x,y+16,width(part,1),1,0,C_ACTIVE_TEXT,15);
   }
  }
+ /* Renatka: release identifier along the bottom of the settings page. */
+ compact_center(240,252,300,0,"Renatka " RENATKA_VERSION,C_MUTED);
 }
 static void settings_key(int code){
  if(code==K_UP){if(set_focus>0)set_focus--;theme_time_part=0;return;}
@@ -2619,7 +2624,7 @@ static int input_lock=-1;
 static int known_remote_key(int code){return code==K_ESC||code==K_BACK||code==K_SR||code==K_ENTER||code==K_UP||code==K_LEFT||code==K_RIGHT||code==K_DOWN||code==K_MAP||code==K_MENU||code==K_ROTN||code==K_ROTP;}
 static void input_log2(const char*tag,int ev,int code){if(!pref.debug)return;char b[72];b[0]=0;appendstr(b,sizeof(b),tag);appendstr(b,sizeof(b)," event");append_int(b,sizeof(b),ev);if(code>=0){appendstr(b,sizeof(b)," code=");append_int(b,sizeof(b),code);}log_append(KEY_LOG,b);}
 static void scan_inputs(void){char p[]="/dev/input/event0";for(int i=0;i<INPUT_MAX;i++){if(infd[i]>=0)continue;p[16]=(char)('0'+i);long fd=s_open(p,O_RDONLY_|O_NONBLOCK_,0);if(fd>=0){infd[i]=(int)fd;input_log2("INPUT OPEN",i,-1);}}}
-static void open_inputs(void){for(int i=0;i<INPUT_MAX;i++)infd[i]=-1;input_lock=-1;if(pref.debug)log_append(KEY_LOG,"--- RENATKA 2.2.0 COMPACT MEDIA INPUT ---");scan_inputs();}
+static void open_inputs(void){for(int i=0;i<INPUT_MAX;i++)infd[i]=-1;input_lock=-1;if(pref.debug)log_append(KEY_LOG,"--- RENATKA 2.2.1 COMPACT MEDIA INPUT ---");scan_inputs();}
 static void keydiag(int code){if(!pref.debug)return;char b[48]="KEY code=";append_int(b,sizeof(b),code);log_append(KEY_LOG,b);}
 static void key_handle_state(int code){render_background_dirty=1;keydiag(code);
 /* RENATKA: physical-console rotary knob. The CSW reader maps the Scenic/Megane
@@ -3079,7 +3084,7 @@ static void run(void){
 #endif
 #endif
  load_prefs();debug_state_write();load_last_fix();seed_boot_theme();if(!pref.debug)remove_stale_logs();load_last_audio();nrecents=read_places(RECENT_PATH,recents,RECENT_MAX);nfaves=read_places(FAVES_PATH,faves,FAVE_MAX);load_trip();apply_brightness();load_map();load_timezones();load_regions();load_cameras();seed_boot_map_view();load_route_data();s_unlink(BT_CMD_PATH);bt_write_small(BT_ACTIVE_PATH,"0\n");bt_active_written=0;bt_name_cache_load();bt_poll_status();if(trip.active){modal=MOD_RESUME_TRIP;modal_choice=0;}open_inputs();csw_init();
-  int wdfd=(int)s_open(WD_PATH,O_WRONLY_,0);debug_log(STATE_LOG,"RENATKA 2.2.0 COMPACT REV16 LOWCAM224 ROADTRACE1 BTNAMECACHE1 LOWCAM224 AUTOZOOM654 PERF8 NAV QAD7+UI6+MEDIA3+FREECAM-BIDIR-ANIM+PACKETS+MMAP+STALL+REPAIRSAFE TRIPFLOW GPSRESUME BTMEDIA CPR2-v5 ATLAS1 CLOCK1 CAMERA2 ROUTE RUNTIME");debug_log(STATE_LOG,qadjmode==7?(qadj_map_ok?"QAD7 PACKET+MMAP QUERY ENABLED":"QAD7 PAGED QUERY ENABLED"):(qadjmode==6?(qadj_map_ok?"QAD6 GEOMMETA+MMAP QUERY ENABLED":"QAD6 PAGED QUERY ENABLED"):(qadjmode==5?(qadj_map_ok?"QAD5 MMAP+STALL QUERY ENABLED":"QAD5 PAGED+STALL QUERY ENABLED"):(qadjmode==4?"QAD4 LOCAL-RECON QUERY ENABLED":(qadjmode==3?"QAD3 GROUP QUERY+RECON ENABLED":(qadjmode==2?"QAD2 NODE-BLOCK QUERY ENABLED (PAGED INDEX)":(qadjmode==1?"QAD1 FAST QUERY ENABLED":"QADJ FAST QUERY FALLBACK CPR2")))))));if(qadjmode==6&&qadj6_legacy_header)debug_log(STATE_LOG,"QAD6 DEV5.31 HEADER COMPAT ENABLED");{char mb[96];mb[0]=0;appendstr(mb,sizeof(mb),"MMAP QAD=");append_int(mb,sizeof(mb),qadj_map_ok);appendstr(mb,sizeof(mb)," GEOM=");append_int(mb,sizeof(mb),route_geom_map_ok);debug_log(STATE_LOG,mb);}u32 tick=0,next_model=s_now_ms(),next_input=next_model;render_runtime_reset(next_model);
+  int wdfd=(int)s_open(WD_PATH,O_WRONLY_,0);debug_log(STATE_LOG,"RENATKA 2.2.1 COMPACT REV16 LOWCAM224 ROADTRACE1 BTNAMECACHE1 LOWCAM224 AUTOZOOM654 PERF8 NAV QAD7+UI6+MEDIA3+FREECAM-BIDIR-ANIM+PACKETS+MMAP+STALL+REPAIRSAFE TRIPFLOW GPSRESUME BTMEDIA CPR2-v5 ATLAS1 CLOCK1 CAMERA2 ROUTE RUNTIME");debug_log(STATE_LOG,qadjmode==7?(qadj_map_ok?"QAD7 PACKET+MMAP QUERY ENABLED":"QAD7 PAGED QUERY ENABLED"):(qadjmode==6?(qadj_map_ok?"QAD6 GEOMMETA+MMAP QUERY ENABLED":"QAD6 PAGED QUERY ENABLED"):(qadjmode==5?(qadj_map_ok?"QAD5 MMAP+STALL QUERY ENABLED":"QAD5 PAGED+STALL QUERY ENABLED"):(qadjmode==4?"QAD4 LOCAL-RECON QUERY ENABLED":(qadjmode==3?"QAD3 GROUP QUERY+RECON ENABLED":(qadjmode==2?"QAD2 NODE-BLOCK QUERY ENABLED (PAGED INDEX)":(qadjmode==1?"QAD1 FAST QUERY ENABLED":"QADJ FAST QUERY FALLBACK CPR2")))))));if(qadjmode==6&&qadj6_legacy_header)debug_log(STATE_LOG,"QAD6 DEV5.31 HEADER COMPAT ENABLED");{char mb[96];mb[0]=0;appendstr(mb,sizeof(mb),"MMAP QAD=");append_int(mb,sizeof(mb),qadj_map_ok);appendstr(mb,sizeof(mb)," GEOM=");append_int(mb,sizeof(mb),route_geom_map_ok);debug_log(STATE_LOG,mb);}u32 tick=0,next_model=s_now_ms(),next_input=next_model;render_runtime_reset(next_model);
   for(;;){
     u32 now=s_now_ms();int model_due=frame_due(now,next_model);
     if(frame_due(now,next_input)){poll_keys();poll_csw();next_input=frame_after(next_input,now,33u);}

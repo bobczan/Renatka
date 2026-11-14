@@ -529,9 +529,11 @@ static void hud_draw_camera(int x,int y,int w,const struct HudCard*c){
 /* Renatka: UK-style limit sign (red ring, white face, black digits) drawn to
  * the left of the speed; hud_sign_text() decides whether there is one. */
 static void hud_speed_sign(int cx,int cy,const char*t,int estimated){
- hud_disc(cx,cy,HUD_LIMIT_R,C_WHITE);
+ /* The sign face is always white: C_WHITE is a text role that turns dark in
+  * DAY mode, which made the day sign black. */
+ hud_disc(cx,cy,HUD_LIMIT_R,rgb(255,255,255));
  hud_disc(cx,cy,HUD_LIMIT_R-1,estimated?rgb(150,150,150):rgb(206,32,41));
- hud_disc(cx,cy,15,C_WHITE);
+ hud_disc(cx,cy,15,rgb(255,255,255));
  int face=4;
  while(face>0&&width(t,face)>26)face--;
  int tw=width(t,face);
