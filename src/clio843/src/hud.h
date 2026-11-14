@@ -379,11 +379,12 @@ static void hud_driver_prepare(u32 now){
    road.kind=1;road.ink=camera_alert_colour();
    camera_alert_text(road.title,sizeof(road.title));
    camera_distance_text(road.badge,sizeof(road.badge));
-   int camera_w=2*HUD_CAMERA_PAD+HUD_CAMERA_ICON_W+2*HUD_CAMERA_GAP+width(road.title,0)+width(road.badge,0);
+   int tw=width(road.title,0),bw=width(road.badge,0);
+   int camera_w=2*HUD_CAMERA_PAD+34+HUD_CAMERA_GAP+(tw>bw?tw:bw);
    if(camera_w>w)w=camera_w;
   }
   if(w>max_w)w=max_w;
-  int h=camera&&show_name?43:29;
+  int h=camera?43:29;
   road.box=hud_box((W-w)/2,HUD_BOTTOM_Y+HUD_BAR_H-h,w,h);
  }
  hud_set_card(HC_SPEED,speed,now);hud_set_card(HC_ROAD,road,now);hud_set_card(HC_TURN,turn,now);
@@ -524,18 +525,29 @@ static void hud_draw_status(struct HudBox b,const struct HudCard*c,u32 now){
   hud_rect_ink(x+10,py,track,2,C_BORDER);hud_rect_ink(x+10+off,py,28,2,C_CYAN);
  }
 }
+static void hud_camera_glyph(int cx,int cy,u16 ink,u16 face){
+ /* Simple side-on camera: body, viewfinder hump, lens. */
+ hud_rect_ink(cx-7,cy-2,15,7,ink);
+ hud_rect_ink(cx-4,cy-5,5,3,ink);
+ hud_disc(cx+2,cy+1,2,ink);
+ hud_disc(cx+2,cy+1,1,face);
+}
 static void hud_draw_camera(int x,int y,int w,const struct HudCard*c){
- int distance_w=width(c->badge,0),title_w=width(c->title,0);
- int fixed_w=HUD_CAMERA_ICON_W+2*HUD_CAMERA_GAP+distance_w;
- int title_limit=w-2*HUD_CAMERA_PAD-fixed_w;
- if(title_limit<=0)return;
- if(title_w>title_limit)title_w=title_limit;
- int start=x+(w-fixed_w-title_w)/2;
- int icon_x=start+HUD_CAMERA_ICON_W/2;
- hud_disc(icon_x,y+14,5,c->ink);hud_disc(icon_x,y+14,2,C_PANEL);
- int title_x=start+HUD_CAMERA_ICON_W+HUD_CAMERA_GAP;
- compact_fit(title_x,y+6,title_w,0,c->title,c->ink);
- compact_fit(title_x+title_w+HUD_CAMERA_GAP,y+6,distance_w,0,c->badge,c->ink);
+ int r=17;
+ int text_w=width(c->title,0);
+ int badge_w=width(c->badge,0);
+ if(badge_w>text_w)text_w=badge_w;
+ int fixed_w=2*r+HUD_CAMERA_GAP+text_w;
+ int start=x+(w-fixed_w)/2;
+ int sx=start+r,sy=y+21;
+ u16 white=rgb(255,255,255);
+ hud_disc(sx,sy,r,white);
+ hud_disc(sx,sy,r-1,rgb(206,32,41));
+ hud_disc(sx,sy,r-5,white);
+ hud_camera_glyph(sx,sy-1,rgb(20,20,20),white);
+ int text_x=start+2*r+HUD_CAMERA_GAP;
+ compact_fit(text_x,y+6,text_w,0,c->title,c->ink);
+ compact_fit(text_x,y+24,text_w,0,c->badge,c->ink);
 }
 /* Renatka: UK-style limit sign (red ring, white face, black digits) drawn to
  * the left of the speed; hud_sign_text() decides whether there is one. */
