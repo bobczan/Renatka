@@ -1,6 +1,6 @@
 <!-- Generated from src/docs/repository-readme.md by src/tools/refresh_latest.py. -->
 
-> **Renatka 2.4.1** — a ClioPlay build for a Renault Scénic III with the
+> **Renatka 2.5.0** — a ClioPlay build for a Renault Scénic III with the
 > physical armrest console. Start with [RENATKA.md](https://github.com/bobczan/Renatka/blob/main/RENATKA.md);
 > the full change history and porting notes are in
 > [CHANGELOG-RENATKA.md](https://github.com/bobczan/Renatka/blob/main/CHANGELOG-RENATKA.md).
@@ -17,10 +17,10 @@
 
 | | |
 | --- | --- |
-| Renatka | **2.4.1** |
+| Renatka | **2.5.0** |
 | Upstream | [`pxwel-dev/ClioPlay`](https://github.com/pxwel-dev/ClioPlay) `7a962e2` (ClioPlay 2.0.0) |
 | Fallback | `v2.2.4` is the last build confirmed on the car before the camera renderer fix; `v2.2.0`, `v2.1.1`, `v2.1.0` and `v2.0.0` are also tagged |
-| Releases | `2.4.1` current · `2.4.0` camera render fix · `2.2.3` panel + sign · `2.2.2` split pill · `2.2.1` sign/road fixes · `2.2.0` upstream merge · `2.1.1` packaging fix · `2.1.0` first 2.1 · `2.0.0` first 2.0 · `legacy-1.x` the old 1.x tree |
+| Releases | `2.5.0` current · `2.4.0` camera render fix · `2.4.0` camera render fix · `2.2.3` panel + sign · `2.2.2` split pill · `2.2.1` sign/road fixes · `2.2.0` upstream merge · `2.1.1` packaging fix · `2.1.0` first 2.1 · `2.0.0` first 2.0 · `legacy-1.x` the old 1.x tree |
 | History | [CHANGELOG-RENATKA.md](https://github.com/bobczan/Renatka/blob/main/CHANGELOG-RENATKA.md) — every change, the hardware facts behind them, and a porting recipe for the next upstream release |
 
 ## What Renatka changes

@@ -6,7 +6,7 @@ import argparse,hashlib,json,shutil,tempfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 from prepare_vendor import CAB_URL,CAB_SHA,extract,obtain_cab
-BOOTSTRAP=('ttn','clio843/btstart.sh','clio843/focusd','clio843/hidd','clio843/prefs.ini')
+BOOTSTRAP=('ttn','clio843/btstart.sh','clio843/focusd','clio843/hidd','clio843/vstatd','clio843/prefs.ini')
 PROGRAMS=('clio843/clio040','clio843/cliospl','clio843/clioa2dp','clio843/font.bin')
 def sha(p):
  h=hashlib.sha256()
@@ -37,7 +37,7 @@ def prepare(output,cab=None,cache=None):
    dst=stage/name;dst.parent.mkdir(parents=True,exist_ok=True)
    source=ROOT/'card-template'/name if name in BOOTSTRAP else ROOT/name
    shutil.copyfile(source,dst)
-  for name in ('ttn','vehicledaemon','clio843/btstart.sh','clio843/focusd','clio843/hidd','clio843/clio040','clio843/cliospl','clio843/clioa2dp'):(stage/name).chmod(0o755)
+  for name in ('ttn','vehicledaemon','clio843/btstart.sh','clio843/focusd','clio843/hidd','clio843/vstatd','clio843/clio040','clio843/cliospl','clio843/clioa2dp'):(stage/name).chmod(0o755)
   manifest={'format':'global-card-runtime-2','navcore':'8.843 non-LIVE','files':{str(p.relative_to(stage)):sha(p) for p in sorted(stage.rglob('*')) if p.is_file()},'vendor_source':CAB_URL,'vendor_archive_sha256':CAB_SHA}
   (stage/'card-runtime.json').write_text(json.dumps(manifest,indent=2)+'\n')
   output.mkdir(parents=True,exist_ok=True)

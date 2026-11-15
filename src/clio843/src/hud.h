@@ -161,7 +161,7 @@ static void hud_clock_prepare(u32 now){
   int h=minute/60,m=minute%60;
   c.title[0]='0'+h/10;c.title[1]='0'+h%10;c.title[2]=':';c.title[3]='0'+m/10;c.title[4]='0'+m%10;
  }
- if(car.tempok&&car_temp_valid(car.temp)){
+ if(pref.showtemp&&car.tempok&&car_temp_valid(car.temp)){
   int f=pref.units==2||(pref.units==0&&region_iso[0]=='U'&&region_iso[1]=='S');
   append_int(c.detail,sizeof(c.detail),f?car.temp*9/5+32:car.temp);
   appendstr(c.detail,sizeof(c.detail),f?"°F":"°C");
@@ -568,11 +568,16 @@ static void hud_speed_sign(int cx,int cy,const char*t,int estimated){
  int tw=width(t,face);
  label(cx-tw/2,cy-10,face,t,rgb(20,20,20),0);
 }
+/* Speed digits never ellipsise: while the pill grows from one to two digits the
+ * full number stays on screen and the card catches up around it. */
+static void hud_speed_digits(int cx,int y,int w,const char*t){
+ int tw=width(t,3);compact_center(cx,y,tw>w?tw:w,3,t,C_WHITE);
+}
 static void hud_draw_speed(struct HudBox b,const struct HudCard*c){
  char lt[8];
  int sign=hud_sign_text(lt,sizeof(lt));
  if(!sign){
-  compact_center(b.x+b.w/2,b.y+5,b.w-10,3,c->title,C_WHITE);
+  hud_speed_digits(b.x+b.w/2,b.y+5,b.w-10,c->title);
   return;
  }
  /* The card is the panel; the speed keeps its own pill inside it. The sign
@@ -584,7 +589,7 @@ static void hud_draw_speed(struct HudBox b,const struct HudCard*c){
  u16 tint=theme_resolved?rgb(30,44,60):rgb(232,240,248);
  u16 edge=theme_resolved?rgb(90,112,136):rgb(150,168,186);
  hud_glass_surface(pill,tint,edge,10u,0);
- compact_center(pill.x+pw/2,pill.y+5,pw-8,3,c->title,C_WHITE);
+ hud_speed_digits(pill.x+pw/2,pill.y+5,pw-8,c->title);
  int save=hud_ink_alpha;
  hud_ink_alpha=(hud_ink_alpha*pa)/256;
  hud_speed_sign(b.x+4+HUD_LIMIT_R,b.y+b.h/2,lt,roadctx.speed_flags&1);

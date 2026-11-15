@@ -34,17 +34,8 @@ static int camera_ahead(const struct Camera*c,u32*distance){
  if(forward<0||forward>700||cross>18||cross< -18)return 0;*distance=geo_seg_m(gps.lat,gps.lon,c->lat,c->lon);return 1;
 }
 static void camera_clear(void){camera_visible=camera_average=camera_candidate_valid=camera_prev_valid=0;camera_average_speed=0;camera_average_m=0;}
-/* Volatile atomic request; the receiver consumes it only on the selected BT
- * source. No head-unit source switching or FM interruption is performed. */
-static u32 camera_alert_ids[16],camera_alert_times[16],camera_alert_slot=0;
-static void camera_sound_request(u32 id,u32 kind){u32 packet[4]={0x4c414c43u,id,s_now_ms()+1500u,kind};long f=s_open(CAMERA_ALERT_TMP,O_WRONLY_|O_CREAT_|O_TRUNC_,0666);if(f>=0){long n=s_write((int)f,packet,sizeof(packet));s_close((int)f);if(n==(long)sizeof(packet))s_rename(CAMERA_ALERT_TMP,CAMERA_ALERT_PATH);}}
-static void camera_sound_service(u32 now){
- if(pref.cameras!=2||!bt_source_selected()||!camera_visible||camera_average||camera_distance>400||camera_distance<20)return;
- for(int i=0;i<16;i++)if(camera_alert_ids[i]==camera_current.id&&now-camera_alert_times[i]<300000u)return;
- u32 slot=camera_alert_slot++&15;camera_alert_ids[slot]=camera_current.id;camera_alert_times[slot]=now;camera_sound_request(camera_current.id,1);
-}
 static void camera_service(void){u32 now=s_now_ms();if(camera_next_ms&&(s32)(now-camera_next_ms)<0)return;camera_next_ms=now+500;
- if(!pref.cameras||!gps.fix||!gps_fix_ms||now-gps_fix_ms>5000||!(region_flags&2)||camerafd<0){camera_clear();camera_sound_request(0,0);return;}
+ if(!pref.cameras||!gps.fix||!gps_fix_ms||now-gps_fix_ms>5000||!(region_flags&2)||camerafd<0){camera_clear();return;}
  if(camera_prev_valid&&now-camera_prev_ms>3000)camera_clear();
  if(camera_average){u32 step=camera_prev_valid?geo_seg_m(camera_prev_lat,camera_prev_lon,gps.lat,gps.lon):0;
  if(step>150||camera_current.iso[0]!=region_iso[0]||camera_current.iso[1]!=region_iso[1]){camera_clear();return;}
@@ -61,7 +52,6 @@ static void camera_service(void){u32 now=s_now_ms();if(camera_next_ms&&(s32)(now
  camera_visible=found;
  if(found){camera_current=selected;camera_distance=best;if(selected.kind==3&&camera_candidate_valid&&camera_candidate.id==selected.id&&camera_candidate_distance>25&&best<=25&&camera_prev_valid){camera_average=1;camera_entry_ms=now;camera_average_m=0;camera_average_speed=0;camera_distance=geo_seg_m(gps.lat,gps.lon,selected.endlat,selected.endlon);}camera_candidate=selected;camera_candidate_distance=best;camera_candidate_valid=1;}else camera_candidate_valid=0;
  }
- camera_sound_service(now);
  camera_prev_lat=gps.lat;camera_prev_lon=gps.lon;camera_prev_ms=now;camera_prev_valid=1;
 }
 /* Only fixed and average-speed cameras carry a speed restriction in the UI.

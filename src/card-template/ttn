@@ -139,6 +139,8 @@ log "BT START REQUESTED EARLY (GPS-INDEPENDENT)"
 # focusd publishes /tmp/cfstate plus a volatile /tmp/cfbus event stream.
 killall focusd >/dev/null 2>&1
 $SD/clio843/focusd >/dev/null 2>&1 &
+# Vehicle status helper: publishes the outside temperature to /tmp/cltemp.
+[ -x "$CD/vstatd" ] && "$CD/vstatd" >/dev/null 2>&1 &
 log "FOCUS START REQUESTED"
 start_vehicle(){
 N=0
