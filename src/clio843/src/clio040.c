@@ -3739,7 +3739,7 @@ static void draw_settings(void){
   }
  }
  ui_scrollbar(468,MENU_BODY_Y,SETTING_VISIBLE_ROWS*SETTING_ROW_STEP-2,first,SETTING_VISIBLE_ROWS,SETTING_COUNT);
- centered(240,254,0,"ClioPlay " CLIOPLAY_VERSION,C_MUTED);
+ centered(240,254,0,"Renatka " CLIOPLAY_VERSION,C_MUTED);
 }
 static void settings_key(int code){
  if(code==K_UP||code==K_DOWN){set_focus=wrap_focus(set_focus,code==K_DOWN?1:-1,SETTING_COUNT);theme_time_part=0;return;}

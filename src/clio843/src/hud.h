@@ -748,16 +748,15 @@ static void hud_draw_speed(struct HudBox b,const struct HudCard*c){
  int speed_face=width(c->title,6)<=68?6:5;
  compact_center(layout.speed_x,b.y+(speed_face==6?3:7),68,speed_face,c->title,C_WHITE);
 
- u16 tint=theme_resolved?rgb(39,52,71):rgb(223,234,246);
- u16 edge=theme_resolved?rgb(119,143,171):rgb(126,148,172);
- if(c->flags)edge=theme_resolved?rgb(225,100,110):rgb(187,48,62);
- /* Reuse the frost sampler on the glass already behind the inset. */
- hud_glass_surface_rim(limit,tint,edge,8u,0,2);
-
- int text_w=limit.w-8,face=5;
- while(face>3&&width(c->detail,face)>text_w)face--;
- int text_y=face==5?2:face==4?5:7;
- compact_center(limit.x+limit.w/2,limit.y+text_y,text_w,face,c->detail,C_WHITE);
+ /* Renatka: UK limit roundel; nothing at all when no limit is known. */
+ if(c->flags){
+  int cx=limit.x+limit.w/2,cy=limit.y+limit.h/2,r=16;
+  hud_disc(cx,cy,r,C_WHITE);
+  hud_disc(cx,cy,r-2,rgb(206,32,41));
+  hud_disc(cx,cy,r-6,C_WHITE);
+  int face=width(c->detail,5)<=24?5:4;
+  compact_center(cx,cy-(face==5?4:5),2*r-6,face,c->detail,rgb(20,20,20));
+ }
 }
 /* Keep time against the outer screen edge and temperature towards the map,
  * regardless of which side the top HUD clock pill occupies. Use the animated
