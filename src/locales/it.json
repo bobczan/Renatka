@@ -258,5 +258,8 @@
   "Usual route selected": "Percorso abituale scelto",
   "Route unavailable": "Percorso non disponibile",
   "Limit ": "Limite ",
-  "Overspeed audio": "Audio eccesso"
+  "Overspeed audio": "Audio eccesso",
+  "Left": "Left",
+  "Right": "Right",
+  "Camera popup": "Camera popup"
 }

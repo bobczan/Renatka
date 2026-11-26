@@ -258,5 +258,8 @@
   "Usual route selected": "Привычный путь выбран",
   "Route unavailable": "Маршрут недоступен",
   "Limit ": "Лимит ",
-  "Overspeed audio": "При превышении"
+  "Overspeed audio": "При превышении",
+  "Left": "Left",
+  "Right": "Right",
+  "Camera popup": "Camera popup"
 }

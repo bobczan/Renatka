@@ -258,5 +258,8 @@
   "Usual route selected": "Übliche Route gewählt",
   "Route unavailable": "Route nicht verfügbar",
   "Limit ": "Limit ",
-  "Overspeed audio": "Tempo-Audio"
+  "Overspeed audio": "Tempo-Audio",
+  "Left": "Left",
+  "Right": "Right",
+  "Camera popup": "Camera popup"
 }

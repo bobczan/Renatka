@@ -258,5 +258,8 @@
   "Usual route selected": "Alışılmış rota seçildi",
   "Route unavailable": "Rota mevcut değil",
   "Limit ": "Limit ",
-  "Overspeed audio": "Hız aşımı sesi"
+  "Overspeed audio": "Hız aşımı sesi",
+  "Left": "Left",
+  "Right": "Right",
+  "Camera popup": "Camera popup"
 }

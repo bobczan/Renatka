@@ -258,5 +258,8 @@
   "Usual route selected": "Звичний маршрут обрано",
   "Route unavailable": "Маршрут недоступний",
   "Limit ": "Ліміт ",
-  "Overspeed audio": "При перевищенні"
+  "Overspeed audio": "При перевищенні",
+  "Left": "Left",
+  "Right": "Right",
+  "Camera popup": "Camera popup"
 }

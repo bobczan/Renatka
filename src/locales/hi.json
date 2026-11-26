@@ -258,5 +258,8 @@
   "Usual route selected": "सामान्य मार्ग चुना गया",
   "Route unavailable": "मार्ग उपलब्ध नहीं",
   "Limit ": "सीमा ",
-  "Overspeed audio": "अधिक गति ऑडियो"
+  "Overspeed audio": "अधिक गति ऑडियो",
+  "Left": "Left",
+  "Right": "Right",
+  "Camera popup": "Camera popup"
 }

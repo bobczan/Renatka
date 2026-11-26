@@ -2076,6 +2076,7 @@ static void preview_cam_state(int kind,int avg,u32 dist,u32 span,u32 avg_m,int a
  render_background_dirty=1;
 }
 static void show_camera(int kind,int avg){
+ if(getenv("CLIO_CAM_SIDE"))pref.cam_popup=atoi(getenv("CLIO_CAM_SIDE"));if(getenv("CLIO_BOTTOM_SWAP"))pref.bottom_swap=atoi(getenv("CLIO_BOTTOM_SWAP"));camera_fixture=1;
  camera_visible=1;camera_average=avg;camera_current.id=(u32)(900+kind*10+avg);
  camera_current.kind=(u8)kind;camera_current.speed=30;camera_current.flags=2;
  camera_current.iso[0]=region_iso[0];camera_current.iso[1]=region_iso[1];

@@ -258,5 +258,8 @@
   "Usual route selected": "已选择常用路线",
   "Route unavailable": "路线不可用",
   "Limit ": "限速 ",
-  "Overspeed audio": "超速音频"
+  "Overspeed audio": "超速音频",
+  "Left": "Left",
+  "Right": "Right",
+  "Camera popup": "Camera popup"
 }

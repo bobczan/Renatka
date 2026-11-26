@@ -258,5 +258,8 @@
   "Usual route selected": "تم اختيار المسار المعتاد",
   "Route unavailable": "المسار غير متاح",
   "Limit ": "الحد ",
-  "Overspeed audio": "صوت التجاوز"
+  "Overspeed audio": "صوت التجاوز",
+  "Left": "Left",
+  "Right": "Right",
+  "Camera popup": "Camera popup"
 }

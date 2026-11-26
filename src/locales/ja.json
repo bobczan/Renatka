@@ -258,5 +258,8 @@
   "Usual route selected": "いつものルートを選択",
   "Route unavailable": "ルートを利用できません",
   "Limit ": "制限 ",
-  "Overspeed audio": "超過時のみ音声"
+  "Overspeed audio": "超過時のみ音声",
+  "Left": "Left",
+  "Right": "Right",
+  "Camera popup": "Camera popup"
 }

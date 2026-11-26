@@ -1084,5 +1084,17 @@
   "rtl_languages": [
     "ar",
     "he"
+  ],
+  "Camera popup": [
+    "Popup caméra",
+    "Aviso de cámara"
+  ],
+  "Left": [
+    "Gauche",
+    "Izquierda"
+  ],
+  "Right": [
+    "Droite",
+    "Derecha"
   ]
 }

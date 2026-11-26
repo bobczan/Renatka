@@ -258,5 +258,8 @@
   "Usual route selected": "Επιλέχθηκε συνήθης διαδρομή",
   "Route unavailable": "Μη διαθέσιμη διαδρομή",
   "Limit ": "Όριο ",
-  "Overspeed audio": "Ήχος υπέρβασης"
+  "Overspeed audio": "Ήχος υπέρβασης",
+  "Left": "Left",
+  "Right": "Right",
+  "Camera popup": "Camera popup"
 }
