@@ -440,7 +440,7 @@ static int fb_flush(void){long fd=s_open(FB_PATH,O_WRONLY_|O_CREAT_,0666);if(fd<
 
 enum { THEME_DAY=0, THEME_NIGHT=1, THEME_AUTO=2 };
 struct Prefs {int bright,hoff,moff,autozoom,debug,theme,units,cameras,clock_auto,language,day_start,night_start,top_swap,bottom_swap,learn_history,destination_predictions,diversions,gps_hud;};
-static struct Prefs pref={50,0,0,1,0,THEME_AUTO,0,1,1,0,CLIO_DAY_START,CLIO_NIGHT_START,0,0,0,1,1,0};
+static struct Prefs pref={50,0,0,1,0,THEME_AUTO,0,1,1,0,CLIO_DAY_START,CLIO_NIGHT_START,0,1,0,1,1,0};
 static int pref_keyboard_language=-1;
 /* The TomTom hardware export is authoritative when present; unknown hardware
  * keeps Bluetooth visible when the hardware export is unavailable. */
@@ -3721,7 +3721,7 @@ static void draw_settings(void){
   }
  }
  ui_scrollbar(468,MENU_BODY_Y,SETTING_VISIBLE_ROWS*SETTING_ROW_STEP-2,first,SETTING_VISIBLE_ROWS,SETTING_COUNT);
- centered(240,254,0,"ClioPlay " CLIOPLAY_VERSION,C_MUTED);
+ centered(240,254,0,"Renatka " CLIOPLAY_VERSION,C_MUTED);
 }
 static void settings_key(int code){
  if(code==K_UP||code==K_DOWN){set_focus=wrap_focus(set_focus,code==K_DOWN?1:-1,SETTING_COUNT);theme_time_part=0;return;}

@@ -2235,7 +2235,7 @@ for(int night=0;night<2;night++){THEME_FILTER gallery_night=night;for(unsigned i
         flags=['-O1','-g','-fsanitize=undefined','-fno-sanitize-recover=all','-Wno-unused-function','-DCLIO_UNICODE=1','-DCLIO_SOURCE="'+str(ROOT/'clio843/src/clio040.c')+'"','-DCLIO_HOST_ROOT="'+str(host)+'/"']
         obj=temp/'gallery.o';exe=temp/'gallery'
         subprocess.run(['cc',*flags,'-c',str(c),'-o',str(obj)],check=True)
-        subprocess.run(['c++','-fsanitize=undefined',str(obj),str(build_text('host-pool')),'-o',str(exe)],check=True)
+        subprocess.run(['c++','-fsanitize=undefined','-no-pie',str(obj),str(build_text('host-pool','gcc','g++')),'-o',str(exe)],check=True)
         result=subprocess.run([str(exe),str(temp)],text=True,capture_output=True,timeout=900)
         if result.returncode:raise RuntimeError(result.stdout[-2000:]+'\n'+result.stderr)
         if need_splash:

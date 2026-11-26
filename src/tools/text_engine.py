@@ -60,7 +60,7 @@ def _build(target,clang,cxx,out):
  common=BASE.copy();sysflags=[]
  if target=='arm':
   root=headers();common+=ARM+['--sysroot='+str(root)];sysflags=['-isystem',str(root/'include/c++/12'),'-isystem',str(root/'include/c++/12/arm-linux-gnueabi')]
- else:common+=['-DHOST_TEST=1']+(['-DCLIO_TEST_POOL=1'] if target=='host-pool' else [])
+ else:common=[f for f in common if f not in ('-ffreestanding','-fno-builtin')];common+=['-DHOST_TEST=1']+(['-DCLIO_TEST_POOL=1'] if target=='host-pool' else [])
  objects=[]
  def compile(source,flags=(),cpp=False):
   obj=out/(str(source.relative_to(SRC)).replace('/','_').replace('.','_')+'.o')

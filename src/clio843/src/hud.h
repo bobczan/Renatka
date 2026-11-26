@@ -531,10 +531,12 @@ static void hud_driver_prepare(u32 now){
  if(cam_over!=hud_camera_over){hud_camera_from=hud_camera_red(now);hud_camera_over=cam_over;hud_camera_at=now;}
  hud_camera_bar_update(camera,now);
  if(show_speed){
-  speed.box=hud_box(pref.bottom_swap?HUD_TURN_X:HUD_BOTTOM_MARGIN,HUD_BOTTOM_Y,HUD_SIDE_W,43);
+  int lim=hud_confirmed_limit();speed.flags=lim;
+  int sw=lim?HUD_SIDE_W:76;
+  int sx=pref.bottom_swap?W-HUD_BOTTOM_MARGIN-sw:HUD_BOTTOM_MARGIN;
+  speed.box=hud_box(sx,HUD_BOTTOM_Y,sw,43);
   append_int(speed.title,sizeof(speed.title),display_speed());
   append_road_limit(speed.detail,sizeof(speed.detail),&roadctx);
-  speed.flags=hud_confirmed_limit();
  }
  if(trip.active&&!trip.paused&&gps.fix&&!freecam&&route_status==R_READY&&nav_man_type!=MAN_NONE&&nav_man_idx>=0){
   turn.box=hud_box(pref.bottom_swap?HUD_BOTTOM_MARGIN:HUD_TURN_X,HUD_BOTTOM_Y,HUD_SIDE_W,43);turn.kind=nav_man_type;
@@ -870,19 +872,21 @@ static struct HudSpeedLayout hud_speed_content_layout(struct HudBox b){
 static void hud_draw_speed(struct HudBox b,const struct HudCard*c){
  struct HudSpeedLayout layout=hud_speed_content_layout(b);
  struct HudBox limit={layout.limit_x,b.y+5,48,33,b.a};
- int speed_face=width(c->title,6)<=68?6:5;
- compact_center(layout.speed_x,b.y+(speed_face==6?3:7),68,speed_face,c->title,C_WHITE);
+ int speed_face=4;
+ const struct CpGlyph*gs=&cp_glyphs[speed_face*98+cp_slot((unsigned char)c->title[0])];
+ int sty=b.y+b.h/2-gs->top-gs->h/2;
+ if(!c->flags){compact_center(b.x+b.w/2,sty,b.w-8,speed_face,c->title,C_WHITE);return;}
+ compact_center(layout.speed_x,sty,68,speed_face,c->title,C_WHITE);
 
- u16 tint=theme_resolved?rgb(39,52,71):rgb(223,234,246);
- u16 edge=theme_resolved?rgb(119,143,171):rgb(126,148,172);
- if(c->flags)edge=theme_resolved?rgb(225,100,110):rgb(187,48,62);
- /* Reuse the frost sampler on the glass already behind the inset. */
- hud_glass_surface_rim(limit,tint,edge,8u,0,2);
-
- int text_w=limit.w-8,face=5;
- while(face>3&&width(c->detail,face)>text_w)face--;
- int text_y=face==5?2:face==4?5:7;
- compact_center(limit.x+limit.w/2,limit.y+text_y,text_w,face,c->detail,C_WHITE);
+ /* UK limit roundel; nothing at all when no limit is known. */
+ int cx=limit.x+limit.w/2,cy=limit.y+limit.h/2,r=20;
+ hud_disc(cx,cy,r,rgb(255,255,255));
+ hud_disc(cx,cy,r-1,rgb(206,32,41));
+ hud_disc(cx,cy,15,rgb(255,255,255));
+ int face=4;
+ while(face>0&&width(c->detail,face)>26)face--;
+ const struct CpGlyph*g=&cp_glyphs[face*98+cp_slot((unsigned char)c->detail[0])];
+ compact_center(cx,cy-g->top-g->h/2,2*r-8,face,c->detail,rgb(20,20,20));
 }
 /* Keep time against the outer screen edge and temperature towards the map,
  * regardless of which side the top HUD clock pill occupies. Use the animated

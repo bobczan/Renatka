@@ -775,7 +775,7 @@ static void settings_content(int page,struct HudBox b,int selected,int opacity,u
    round_rect(x,pair_origin(&p,y,27)+16,width(part,1),1,0,C_ACTIVE_TEXT,15);}
  }
  menu_rows_end(rows,b.x+b.w-6,pitch,count,opacity);
- box_text(b.x+12,b.y+b.h-14,b.w-24,10,0,"ClioPlay " CLIOPLAY_VERSION,C_MUTED);
+ box_text(b.x+12,b.y+b.h-14,b.w-24,10,0,"Renatka " CLIOPLAY_VERSION,C_MUTED);
 }
 static void phone_content(struct HudBox b,int selected,int opacity){
  hud_ink_alpha=opacity;title_draw(b,"Bluetooth");

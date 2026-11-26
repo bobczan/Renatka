@@ -1,9 +1,9 @@
 <!-- Generated from src/docs/repository-readme.md by src/tools/refresh_latest.py. -->
 
-<h1 align="center">ClioPlay @@VERSION@@</h1>
+<h1 align="center">Renatka @@VERSION@@</h1>
 <p align="center">Offline navigation and Bluetooth audio for the original Carminat TomTom screen.</p>
 <p align="center">
-  Created and maintained by <a href="https://github.com/pxwel-dev">Pawel (pxwel-dev)</a>.
+  Maintained by <a href="https://github.com/bobczan">bobczan</a>, based on ClioPlay by <a href="https://github.com/pxwel-dev">Pawel (pxwel-dev)</a>.
 </p>
 
 

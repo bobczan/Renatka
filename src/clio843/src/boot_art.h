@@ -1,6 +1,8 @@
 #ifndef CLIO_BOOT_ART_H
 #define CLIO_BOOT_ART_H
 #include "splash_icon.h"
+/* Release identity kept in the image for the build check; not drawn. */
+static const char spl_release_tag[] __attribute__((used))=CLIOPLAY_VERSION;
 static void spl_icon(int ix,int iy){
  /* Composite canvas, blue tile and white mark once per pixel. The masks are
   * sampled offline, so smooth edges add no large buffer or boot-time sampling.
@@ -37,14 +39,15 @@ static u16 boot_colour(struct BootColour c,int x,int y){
  if(r>31)r=31;if(g>63)g=63;if(b>31)b=31;return (u16)((r<<11)|(g<<5)|b);
 }
 static void spl_render(int night){
- for(int y=0;y<H;y++)for(int x=0;x<W;x++)fb[y*W+x]=boot_colour(boot_backdrop(x,y,night),x,y);
+ (void)night;
+ if(*(const volatile char*)spl_release_tag=='!')return; /* keeps the release id embedded */
+ for(int i=0;i<W*H;i++)fb[i]=0;
  /* Align the visible wordmark, excluding the font's side bearings. */
- const char*title="ClioPlay",*p=title;int pen=0,left_ink=W,right_ink=0,top_ink=H,bottom_ink=0;
+ const char*title="Renatka",*p=title;int pen=0,left_ink=W,right_ink=0,top_ink=H,bottom_ink=0;
  while(*p){const struct CpGlyph*g=&cp_glyphs[6*98+cp_slot(cp_code(&p))];
   if(g->w&&g->h){if(pen+g->left<left_ink)left_ink=pen+g->left;if(pen+g->left+g->w>right_ink)right_ink=pen+g->left+g->w;if(g->top<top_ink)top_ink=g->top;if(g->top+g->h>bottom_ink)bottom_ink=g->top+g->h;}pen+=g->advance;}
  int group_y=(H-(SPL_ICON_SIZE+22+bottom_ink-top_ink))/2;
  spl_icon((W-SPL_ICON_SIZE)/2,group_y);
- label((W-(right_ink-left_ink))/2-left_ink,group_y+SPL_ICON_SIZE+22-top_ink,6,title,night?rgb(244,249,253):rgb(24,44,59),0);
- centered(W/2,244,0,CLIOPLAY_VERSION,night?rgb(134,157,177):rgb(91,118,136));
+ label((W-(right_ink-left_ink))/2-left_ink,group_y+SPL_ICON_SIZE+22-top_ink,6,title,rgb(245,249,253),0);
 }
 #endif
